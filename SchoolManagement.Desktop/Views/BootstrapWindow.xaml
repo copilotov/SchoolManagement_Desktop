@@ -1,0 +1,54 @@
+<Window x:Class="SchoolManagement.Desktop.Views.BootstrapWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title=""
+        Width="520"
+        Height="360"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        ShowInTaskbar="True"
+        Topmost="True"
+        Background="#FAF8F5"
+        SnapsToDevicePixels="True">
+
+    <!-- The splash has no translated text on purpose: translation is one of the
+         steps that can fail. The error state therefore uses icons only. -->
+    <Grid>
+        <StackPanel x:Name="SplashPanel"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+            <Image x:Name="LogoImage"
+                   Width="128"
+                   Height="128"
+                   Stretch="Uniform" />
+            <ProgressBar IsIndeterminate="True"
+                         Width="180"
+                         Height="4"
+                         Margin="0,28,0,0"
+                         Foreground="{DynamicResource Brush.Primary}"
+                         Background="Transparent"
+                         BorderThickness="0" />
+        </StackPanel>
+
+        <StackPanel x:Name="ErrorPanel"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Visibility="Collapsed">
+            <TextBlock Text="&#xE7BA;"
+                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                       FontSize="52"
+                       HorizontalAlignment="Center"
+                       Foreground="{DynamicResource Brush.Danger}" />
+            <Button Style="{StaticResource IconButton}"
+                    HorizontalAlignment="Center"
+                    Margin="0,18,0,0"
+                    Click="OnRetryClick">
+                <TextBlock Text="&#xE72C;"
+                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                           FontSize="26"
+                           Foreground="{DynamicResource Brush.Primary}" />
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

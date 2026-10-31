@@ -1,0 +1,60 @@
+<UserControl x:Class="SchoolManagement.Desktop.Views.SettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32" MaxWidth="760" HorizontalAlignment="Left">
+            <TextBlock Text="{loc:Tr settings.title}"
+                       Style="{StaticResource PageTitle}" />
+
+            <Border Style="{StaticResource Card}" Margin="0,20,0,0">
+                <StackPanel>
+                    <TextBlock Text="{loc:Tr settings.appearance}"
+                               Style="{StaticResource SectionHeader}" />
+                    <CheckBox Content="{loc:Tr settings.darkMode}"
+                              IsChecked="{Binding IsDarkTheme, Mode=TwoWay}"
+                              Margin="0,14,0,0" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="{loc:Tr settings.language}"
+                               Style="{StaticResource SectionHeader}" />
+                    <ComboBox ItemsSource="{Binding Languages}"
+                              SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                              DisplayMemberPath="DisplayName"
+                              Width="240"
+                              HorizontalAlignment="Left"
+                              Margin="0,14,0,0" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="{Binding StatusMessage}"
+                       Foreground="{DynamicResource Brush.Success}"
+                       FontSize="13"
+                       Margin="2,12,0,0" />
+
+            <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="{loc:Tr settings.about}"
+                               Style="{StaticResource SectionHeader}" />
+                    <TextBlock Text="{loc:Tr app.name}"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               Margin="0,12,0,0" />
+                    <TextBlock Text="{loc:Tr settings.aboutDescription}"
+                               Style="{StaticResource PageSubtitle}"
+                               Margin="0,6,0,0" />
+                    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                        <TextBlock Text="{loc:Tr settings.appVersion}"
+                                   Style="{StaticResource StatusText}"
+                                   Margin="0,0,6,0" />
+                        <TextBlock Text="{Binding AppVersion}"
+                                   Style="{StaticResource StatusText}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

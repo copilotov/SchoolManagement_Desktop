@@ -1,0 +1,20 @@
+﻿SchoolManagement.Desktop
+
+
+winexe
+C#
+.cs
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Desktop\obj\Release\net8.0-windows\
+SchoolManagement.Desktop
+none
+false
+TRACE;RELEASE;NET;NET8_0;NETCOREAPP
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Desktop\App.xaml
+12-1082920428
+3-146181325
+30-458700342
+240-1543522389
+Resources\Styles.xaml;Resources\Themes\Dark.xaml;Resources\Themes\Light.xaml;Views\BootstrapWindow.xaml;Views\DashboardPage.xaml;Views\EmptyPageView.xaml;Views\FinancePage.xaml;Views\GroupsPage.xaml;Views\SettingsPage.xaml;Views\ShellWindow.xaml;Views\StatusBarView.xaml;Views\StudentsPage.xaml;
+
+True
+

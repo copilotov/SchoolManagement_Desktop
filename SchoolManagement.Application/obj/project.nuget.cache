@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "jQ/Vn3Mhjjg=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\RAMLINA\\Documents\\Projet par défaut\\SchoolManagement.Application\\SchoolManagement.Application.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\RAMLINA\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

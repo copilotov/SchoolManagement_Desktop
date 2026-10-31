@@ -1,0 +1,11 @@
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\bin\Debug\net8.0\SchoolManagement.Domain.deps.json
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\bin\Debug\net8.0\SchoolManagement.Domain.dll
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\bin\Debug\net8.0\SchoolManagement.Domain.pdb
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\obj\Debug\net8.0\SchoolManagement.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\obj\Debug\net8.0\SchoolManagement.Domain.AssemblyInfoInputs.cache
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\obj\Debug\net8.0\SchoolManagement.Domain.AssemblyInfo.cs
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\obj\Debug\net8.0\SchoolManagement.Domain.csproj.CoreCompileInputs.cache
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\obj\Debug\net8.0\SchoolManagement.Domain.dll
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\obj\Debug\net8.0\refint\SchoolManagement.Domain.dll
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\obj\Debug\net8.0\SchoolManagement.Domain.pdb
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\obj\Debug\net8.0\ref\SchoolManagement.Domain.dll

@@ -1,0 +1,15 @@
+<Project>
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Deterministic>true</Deterministic>
+    <InvariantGlobalization>false</InvariantGlobalization>
+
+    <!-- The four non-UI projects must stay warning-free. The WPF project is
+         excluded because XAML-generated code emits warnings we cannot control. -->
+    <TreatWarningsAsErrors Condition="'$(MSBuildProjectName)' != 'SchoolManagement.Desktop'">true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>
