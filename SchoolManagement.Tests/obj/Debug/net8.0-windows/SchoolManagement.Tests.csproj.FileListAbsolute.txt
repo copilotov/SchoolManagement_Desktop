@@ -174,3 +174,4 @@ C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Tests\obj\Debug\n
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Tests\obj\Debug\net8.0-windows\SchoolManagement.Tests.pdb
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Tests\obj\Debug\net8.0-windows\SchoolManagement.Tests.genruntimeconfig.cache
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Tests\obj\Debug\net8.0-windows\ref\SchoolManagement.Tests.dll
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Tests\obj\Debug\net8.0-windows\SchoolManagement.Tests.sourcelink.json

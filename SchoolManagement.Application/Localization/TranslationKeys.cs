@@ -84,6 +84,8 @@ public static class TranslationKeys
         public const string Unexpected = "errors.unexpected";
         public const string SaveError = "errors.saveError";
         public const string DatabaseFailure = "errors.databaseFailure";
+        public const string NotFound = "errors.notFound";
+        public const string RequiredFields = "errors.requiredFields";
     }
 
     public static class Days

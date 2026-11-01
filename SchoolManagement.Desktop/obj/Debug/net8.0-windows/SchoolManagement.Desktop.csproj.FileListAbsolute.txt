@@ -110,3 +110,4 @@ C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Desktop\obj\Debug
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Desktop\obj\Debug\net8.0-windows\SchoolManagement.Desktop.pdb
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Desktop\obj\Debug\net8.0-windows\SchoolManagement.Desktop.genruntimeconfig.cache
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Desktop\obj\Debug\net8.0-windows\ref\SchoolManagement.Desktop.dll
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Desktop\obj\Debug\net8.0-windows\SchoolManagement.Desktop.sourcelink.json

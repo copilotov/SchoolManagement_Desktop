@@ -18,3 +18,4 @@ C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Infrastructure\ob
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Infrastructure\obj\Debug\net8.0\refint\SchoolManagement.Infrastructure.dll
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Infrastructure\obj\Debug\net8.0\SchoolManagement.Infrastructure.pdb
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Infrastructure\obj\Debug\net8.0\ref\SchoolManagement.Infrastructure.dll
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Infrastructure\obj\Debug\net8.0\SchoolManagement.Infrastructure.sourcelink.json

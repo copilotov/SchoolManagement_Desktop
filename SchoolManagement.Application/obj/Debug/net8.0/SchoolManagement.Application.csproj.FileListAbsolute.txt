@@ -13,3 +13,4 @@ C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Application\obj\D
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Application\obj\Debug\net8.0\refint\SchoolManagement.Application.dll
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Application\obj\Debug\net8.0\SchoolManagement.Application.pdb
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Application\obj\Debug\net8.0\ref\SchoolManagement.Application.dll
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Application\obj\Debug\net8.0\SchoolManagement.Application.sourcelink.json
