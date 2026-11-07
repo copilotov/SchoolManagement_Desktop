@@ -1,0 +1,198 @@
+<UserControl x:Class="SchoolManagement.Desktop.Views.AttendanceReportPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization">
+    <UserControl.InputBindings>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}" />
+        <KeyBinding Key="E" Modifiers="Control" Command="{Binding ExportExcelCommand}" />
+        <KeyBinding Key="F5" Command="{Binding ReloadCommand}" />
+    </UserControl.InputBindings>
+
+    <DockPanel Margin="24">
+        <StackPanel DockPanel.Dock="Top">
+            <Grid>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="{loc:Tr common.back}"
+                            Command="{Binding BackCommand}"
+                            Style="{StaticResource LinkButton}"
+                            VerticalAlignment="Center"
+                            Margin="0,0,12,0" />
+                    <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitle}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center">
+                    <Button Content="{loc:Tr reports.print}"
+                            Command="{Binding PrintCommand}"
+                            Style="{StaticResource PrimaryButton}" />
+                    <Button Content="{loc:Tr reports.exportPdf}"
+                            Command="{Binding ExportPdfCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="8,0,0,0" />
+                    <Button Content="{loc:Tr reports.exportExcel}"
+                            Command="{Binding ExportExcelCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="8,0,0,0" />
+                </StackPanel>
+            </Grid>
+
+            <Grid Margin="0,14,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="220" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="140" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="140" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           Text="{loc:Tr reports.filterGroup}"
+                           Style="{StaticResource FieldLabel}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,8,0" />
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding Groups}"
+                          DisplayMemberPath="Label"
+                          SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" />
+                <TextBlock Grid.Column="2"
+                           Text="{loc:Tr reports.filterStudent}"
+                           Style="{StaticResource FieldLabel}"
+                           VerticalAlignment="Center"
+                           Margin="16,0,8,0" />
+                <ComboBox Grid.Column="3"
+                          ItemsSource="{Binding Students}"
+                          DisplayMemberPath="Label"
+                          SelectedItem="{Binding SelectedStudent, Mode=TwoWay}" />
+                <TextBlock Grid.Column="4"
+                           Text="{loc:Tr reports.fromDate}"
+                           Style="{StaticResource FieldLabel}"
+                           VerticalAlignment="Center"
+                           Margin="16,0,8,0" />
+                <TextBox Grid.Column="5"
+                         Text="{Binding FromDate, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Grid.Column="6"
+                           Text="{loc:Tr reports.toDate}"
+                           Style="{StaticResource FieldLabel}"
+                           VerticalAlignment="Center"
+                           Margin="16,0,8,0" />
+                <TextBox Grid.Column="7"
+                         Text="{Binding ToDate, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Grid.Column="9"
+                        Content="{loc:Tr common.refresh}"
+                        Command="{Binding ReloadCommand}"
+                        Style="{StaticResource SecondaryButton}"
+                        Margin="12,0,0,0" />
+            </Grid>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{loc:Tr reports.periodLabel}"
+                                   Style="{StaticResource FieldLabel}" />
+                        <TextBlock Text="{Binding PeriodText}" Margin="8,0,16,0" />
+                        <TextBlock Text="{loc:Tr reports.filterGroup}"
+                                   Style="{StaticResource FieldLabel}" />
+                        <TextBlock Text="{Binding GroupText}" Margin="8,0,16,0" />
+                        <TextBlock Text="{loc:Tr reports.filterStudent}"
+                                   Style="{StaticResource FieldLabel}" />
+                        <TextBlock Text="{Binding StudentText}" Margin="8,0,16,0" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <TextBlock Text="{loc:Tr reports.totalStudents}"
+                                   Style="{StaticResource FieldLabel}" />
+                        <TextBlock Text="{Binding TotalStudentsText}"
+                                   FontWeight="SemiBold"
+                                   Margin="8,0,16,0" />
+                        <TextBlock Text="{loc:Tr reports.totalRecords}"
+                                   Style="{StaticResource FieldLabel}" />
+                        <TextBlock Text="{Binding TotalRecordsText}"
+                                   FontWeight="SemiBold"
+                                   Margin="8,0,16,0" />
+                        <TextBlock Text="{loc:Tr reports.presentCount}"
+                                   Style="{StaticResource FieldLabel}" />
+                        <TextBlock Text="{Binding PresentText}"
+                                   Foreground="{DynamicResource Brush.Present}"
+                                   FontWeight="SemiBold"
+                                   Margin="8,0,16,0" />
+                        <TextBlock Text="{loc:Tr reports.absentCount}"
+                                   Style="{StaticResource FieldLabel}" />
+                        <TextBlock Text="{Binding AbsentText}"
+                                   Foreground="{DynamicResource Brush.Danger}"
+                                   FontWeight="SemiBold"
+                                   Margin="8,0,16,0" />
+                        <TextBlock Text="{loc:Tr reports.lateCount}"
+                                   Style="{StaticResource FieldLabel}" />
+                        <TextBlock Text="{Binding LateText}"
+                                   Foreground="{DynamicResource Brush.Late}"
+                                   FontWeight="SemiBold"
+                                   Margin="8,0,16,0" />
+                        <TextBlock Text="{loc:Tr reports.attendanceRate}"
+                                   Style="{StaticResource FieldLabel}" />
+                        <TextBlock Text="{Binding AttendanceRateText}"
+                                   FontWeight="SemiBold"
+                                   Margin="8,0,0,0" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Background="{DynamicResource Brush.SurfaceVariant}"
+                    BorderBrush="{DynamicResource Brush.Danger}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="12,8"
+                    Margin="0,12,0,0"
+                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="{DynamicResource Brush.Danger}"
+                           TextWrapping="Wrap" />
+            </Border>
+
+            <TextBlock Text="{Binding StatusMessage}"
+                       Foreground="{DynamicResource Brush.Success}"
+                       Margin="0,12,0,0"
+                       Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibility}}" />
+
+            <TextBlock Text="{loc:Tr reports.noRecords}"
+                       Style="{StaticResource PageSubtitle}"
+                       Margin="0,12,0,0"
+                       Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}" />
+        </StackPanel>
+
+        <DataGrid ItemsSource="{Binding Rows}"
+                  CanUserSortColumns="False"
+                  IsReadOnly="True"
+                  AutoGenerateColumns="False"
+                  Margin="0,14,0,0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="{loc:Tr reports.studentLabel}"
+                                    Binding="{Binding StudentName}"
+                                    Width="*" />
+                <DataGridTextColumn Header="{loc:Tr reports.codeLabel}"
+                                    Binding="{Binding StudentCode}"
+                                    Width="120" />
+                <DataGridTextColumn Header="{loc:Tr reports.groupLabel}"
+                                    Binding="{Binding GroupName}"
+                                    Width="150" />
+                <DataGridTextColumn Header="{loc:Tr reports.totalSessions}"
+                                    Binding="{Binding SessionCount}"
+                                    Width="110" />
+                <DataGridTextColumn Header="{loc:Tr reports.presentCount}"
+                                    Binding="{Binding PresentCount}"
+                                    Width="90" />
+                <DataGridTextColumn Header="{loc:Tr reports.absentCount}"
+                                    Binding="{Binding AbsentCount}"
+                                    Width="90" />
+                <DataGridTextColumn Header="{loc:Tr reports.lateCount}"
+                                    Binding="{Binding LateCount}"
+                                    Width="90" />
+                <DataGridTextColumn Header="{loc:Tr reports.attendanceRate}"
+                                    Binding="{Binding AttendanceRate, StringFormat={}{0:0.#}%}"
+                                    Width="120" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

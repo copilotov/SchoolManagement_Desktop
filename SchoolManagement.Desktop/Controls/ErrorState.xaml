@@ -1,0 +1,59 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.ErrorState"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - error state with a retry action. The danger container keeps
+         the message readable in both themes. -->
+    <Border Background="{DynamicResource Danger.Container}"
+            BorderBrush="{DynamicResource Danger}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource Radius.Card}"
+            Padding="{StaticResource Inset.Card}"
+            HorizontalAlignment="Stretch">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Style="{StaticResource Icon.Glyph}"
+                       FontSize="28"
+                       VerticalAlignment="Top"
+                       Foreground="{DynamicResource Danger.OnContainer}"
+                       Text="{StaticResource Icon.Error}" />
+
+            <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                <TextBlock Style="{StaticResource Text.Subtitle}"
+                           Foreground="{DynamicResource Danger.OnContainer}"
+                           TextWrapping="Wrap"
+                           Text="{Binding Title, ElementName=Root}" />
+
+                <TextBlock Style="{StaticResource Text.Body}"
+                           Foreground="{DynamicResource Danger.OnContainer}"
+                           Margin="0,6,0,0"
+                           TextWrapping="Wrap"
+                           Text="{Binding Message, ElementName=Root}"
+                           Visibility="{Binding Message, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+
+                <TextBlock Style="{StaticResource Text.Caption}"
+                           Foreground="{DynamicResource Danger.OnContainer}"
+                           Margin="0,6,0,0"
+                           TextWrapping="Wrap"
+                           Opacity="0.85"
+                           Text="{Binding Details, ElementName=Root}"
+                           Visibility="{Binding Details, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+
+                <Button Style="{StaticResource Button.Danger}"
+                        Margin="0,12,0,0"
+                        HorizontalAlignment="Left"
+                        Content="{Binding RetryText, ElementName=Root}"
+                        Command="{Binding RetryCommand, ElementName=Root}"
+                        Visibility="{Binding RetryCommand, ElementName=Root, Converter={StaticResource ObjectToVisibility}}" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

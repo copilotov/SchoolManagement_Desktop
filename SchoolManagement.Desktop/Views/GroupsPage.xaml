@@ -3,7 +3,254 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization"
              xmlns:views="clr-namespace:SchoolManagement.Desktop.Views">
-    <views:EmptyPageView Title="{loc:Tr groups.title}"
-                         Description="{loc:Tr common.noData}"
-                         Glyph="&#xE8F1;" />
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding EditSelectedCommand}" />
+        <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />
+        <KeyBinding Key="Escape" Command="{Binding CancelEditorCommand}" />
+        <KeyBinding Key="Enter" Command="{Binding SaveEditorCommand}" />
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="24">
+            <StackPanel DockPanel.Dock="Top">
+                <Grid>
+                    <TextBlock Text="{loc:Tr groups.title}"
+                               Style="{StaticResource PageTitle}" />
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center">
+                        <Button Content="{loc:Tr groups.add}"
+                                Command="{Binding AddCommand}"
+                                Style="{StaticResource PrimaryButton}" />
+                        <Button Content="{loc:Tr groups.generateSessions}"
+                                Command="{Binding GenerateAllCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="10,0,0,0" />
+                        <Button Content="{loc:Tr timetable.title}"
+                                Command="{Binding OpenTimetableCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="8,0,0,0" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="0,16,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0"
+                             MaxWidth="300"
+                             HorizontalAlignment="Left"
+                             MinWidth="220"
+                             ToolTip="{loc:Tr groups.searchHint}"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                    <ComboBox Grid.Column="1"
+                              Width="150"
+                              Margin="12,0,0,0"
+                              ItemsSource="{Binding SortOptions}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedSort, Mode=TwoWay}" />
+                    <CheckBox Grid.Column="2"
+                              Margin="12,0,0,0"
+                              VerticalAlignment="Center"
+                              IsChecked="{Binding SortDescending, Mode=TwoWay}"
+                              Content="{loc:Tr common.sortDescending}" />
+                    <CheckBox Grid.Column="3"
+                              Margin="12,0,0,0"
+                              VerticalAlignment="Center"
+                              IsChecked="{Binding IncludeInactive, Mode=TwoWay}"
+                              Content="{loc:Tr common.includeInactive}" />
+                    <Button Grid.Column="4"
+                            Content="{loc:Tr common.refresh}"
+                            Command="{Binding ReloadCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="12,0,0,0" />
+                </Grid>
+
+                <Border Background="{DynamicResource Brush.SurfaceVariant}"
+                        BorderBrush="{DynamicResource Brush.Danger}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="12,8"
+                        Margin="0,12,0,0"
+                        Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding ErrorMessage}"
+                                   Foreground="{DynamicResource Brush.Danger}"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center" />
+                        <Button Content="{loc:Tr license.renewNow}"
+                                Command="{Binding RenewLicenseCommand}"
+                                Style="{StaticResource LinkButton}"
+                                Margin="12,0,0,0"
+                                Visibility="{Binding IsRenewVisible, Converter={StaticResource BoolToVisibility}}" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="{DynamicResource Brush.Success}"
+                           Margin="0,12,0,0"
+                           Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibility}}" />
+            </StackPanel>
+
+            <DataGrid ItemsSource="{Binding Items}"
+                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                      CanUserSortColumns="False"
+                      IsReadOnly="True"
+                      AutoGenerateColumns="False"
+                      Margin="0,14,0,0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="{loc:Tr groups.name}"
+                                        Binding="{Binding Name}"
+                                        Width="160" />
+                    <DataGridTextColumn Header="{loc:Tr groups.grade}"
+                                        Binding="{Binding GradeName}"
+                                        Width="110" />
+                    <DataGridTextColumn Header="{loc:Tr groups.subject}"
+                                        Binding="{Binding SubjectName}"
+                                        Width="130" />
+                    <DataGridTextColumn Header="{loc:Tr groups.teacher}"
+                                        Binding="{Binding TeacherName}"
+                                        Width="150" />
+                    <DataGridTextColumn Header="{loc:Tr groups.monthlyFee}"
+                                        Binding="{Binding MonthlyFee, StringFormat={}{0:0.##}}"
+                                        Width="100" />
+
+                    <DataGridTemplateColumn Header="{loc:Tr groups.capacity}" Width="110">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="10"
+                                        Padding="8,2"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="{DynamicResource Brush.SurfaceVariant}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsFull}" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource Brush.Danger}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding CapacityText}"
+                                                   FontSize="11">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsFull}" Value="True">
+                                                            <Setter Property="Foreground" Value="White" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <TextBlock Text="{loc:Tr groups.full}"
+                                                   FontSize="10"
+                                                   Margin="6,0,0,0"
+                                                   Foreground="White"
+                                                   Visibility="{Binding IsFull, Converter={StaticResource BoolToVisibility}}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="{loc:Tr groups.weeklySchedule}" Width="130">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding WeeklySlots}"
+                                               FontWeight="SemiBold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource Brush.Success}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasSchedule}" Value="False">
+                                                        <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="{loc:Tr groups.slotsPerWeek}"
+                                               Margin="4,0,0,0"
+                                               FontSize="11"
+                                               Visibility="{Binding HasSchedule, Converter={StaticResource BoolToVisibility}}" />
+                                    <TextBlock Text="{loc:Tr groups.noSlotsShort}"
+                                               FontSize="11">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasSchedule}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="{loc:Tr common.actions}" Width="380">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="{loc:Tr groups.details}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.DetailsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" />
+                                    <Button Content="{loc:Tr groups.manageStudents}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.EnrollCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="8,0,0,0" />
+                                    <Button Content="{loc:Tr groups.schedule}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.ScheduleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="8,0,0,0" />
+                                    <Button Content="{loc:Tr groups.generateSessions}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.GenerateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="8,0,0,0" />
+                                    <Button Content="{loc:Tr common.edit}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="8,0,0,0" />
+                                    <Button Content="{loc:Tr common.delete}"
+                                            Style="{StaticResource LinkButton}"
+                                            Foreground="{DynamicResource Brush.Danger}"
+                                            Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="8,0,0,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+
+        <!-- Shared add/edit form -->
+        <Border Style="{StaticResource EditorOverlay}"
+                Panel.ZIndex="10"
+                Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource EditorCard}">
+                <views:GroupFormView DataContext="{Binding}" />
+            </Border>
+        </Border>
+    </Grid>
 </UserControl>

@@ -1,0 +1,182 @@
+<ui:FluentWindow x:Class="SchoolManagement.Desktop.Views.ShortcutsWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization"
+                 Title="{loc:Tr shortcuts.title}"
+                 Width="560"
+                 SizeToContent="Height"
+                 MaxHeight="680"
+                 MinHeight="320"
+                 ResizeMode="NoResize"
+                 ShowInTaskbar="False"
+                 WindowStartupLocation="CenterOwner"
+                 WindowBackdropType="Mica"
+                 WindowCornerPreference="Round"
+                 ExtendsContentIntoTitleBar="True">
+
+    <ui:FluentWindow.Resources>
+        <Style x:Key="ShortcutLabel" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource Font.Family}" />
+            <Setter Property="FontSize" Value="{StaticResource Font.Size.Body}" />
+            <Setter Property="Foreground" Value="{DynamicResource Text.Primary}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,0,16,0" />
+        </Style>
+
+        <Style x:Key="ShortcutKey" TargetType="Border" BasedOn="{StaticResource KeyCap}">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="MinWidth" Value="64" />
+            <Setter Property="Padding" Value="8,2" />
+        </Style>
+
+        <Style x:Key="ShortcutRow" TargetType="Grid">
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+
+        <Style x:Key="ShortcutSection" TargetType="TextBlock" BasedOn="{StaticResource Text.Label}">
+            <Setter Property="Margin" Value="0,16,0,10" />
+            <Setter Property="Foreground" Value="{DynamicResource Text.Secondary}" />
+        </Style>
+    </ui:FluentWindow.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Grid.Row="0"
+                     Title="{loc:Tr shortcuts.title}"
+                     ShowMinimize="False"
+                     ShowMaximize="False" />
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      Padding="24,4,24,24">
+            <StackPanel>
+                <TextBlock Text="{loc:Tr shortcuts.subtitle}"
+                           Style="{StaticResource Text.Body}"
+                           Foreground="{DynamicResource Text.Secondary}"
+                           TextWrapping="Wrap" />
+
+                <!-- Navigation -->
+                <TextBlock Text="{loc:Tr shortcuts.groupNavigation}"
+                           Style="{StaticResource ShortcutSection}" />
+
+                <Grid Style="{StaticResource ShortcutRow}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Tr shortcuts.navigateTabs}" Style="{StaticResource ShortcutLabel}" />
+                    <Border Grid.Column="1" Style="{StaticResource ShortcutKey}">
+                        <TextBlock Text="{loc:Tr shortcuts.keysNavigateTabs}" Style="{StaticResource KeyCapText}" HorizontalAlignment="Center" />
+                    </Border>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRow}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Tr shortcuts.back}" Style="{StaticResource ShortcutLabel}" />
+                    <Border Grid.Column="1" Style="{StaticResource ShortcutKey}">
+                        <TextBlock Text="{loc:Tr shortcuts.keysBack}" Style="{StaticResource KeyCapText}" HorizontalAlignment="Center" />
+                    </Border>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRow}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Tr shortcuts.toggleNav}" Style="{StaticResource ShortcutLabel}" />
+                    <Border Grid.Column="1" Style="{StaticResource ShortcutKey}">
+                        <TextBlock Text="{loc:Tr shortcuts.keysToggleNav}" Style="{StaticResource KeyCapText}" HorizontalAlignment="Center" />
+                    </Border>
+                </Grid>
+
+                <!-- Actions -->
+                <TextBlock Text="{loc:Tr shortcuts.groupActions}"
+                           Style="{StaticResource ShortcutSection}" />
+
+                <Grid Style="{StaticResource ShortcutRow}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Tr shortcuts.new}" Style="{StaticResource ShortcutLabel}" />
+                    <Border Grid.Column="1" Style="{StaticResource ShortcutKey}">
+                        <TextBlock Text="{loc:Tr shortcuts.keysNew}" Style="{StaticResource KeyCapText}" HorizontalAlignment="Center" />
+                    </Border>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRow}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Tr shortcuts.save}" Style="{StaticResource ShortcutLabel}" />
+                    <Border Grid.Column="1" Style="{StaticResource ShortcutKey}">
+                        <TextBlock Text="{loc:Tr shortcuts.keysSave}" Style="{StaticResource KeyCapText}" HorizontalAlignment="Center" />
+                    </Border>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRow}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Tr shortcuts.print}" Style="{StaticResource ShortcutLabel}" />
+                    <Border Grid.Column="1" Style="{StaticResource ShortcutKey}">
+                        <TextBlock Text="{loc:Tr shortcuts.keysPrint}" Style="{StaticResource KeyCapText}" HorizontalAlignment="Center" />
+                    </Border>
+                </Grid>
+
+                <!-- General -->
+                <TextBlock Text="{loc:Tr shortcuts.groupGeneral}"
+                           Style="{StaticResource ShortcutSection}" />
+
+                <Grid Style="{StaticResource ShortcutRow}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Tr shortcuts.search}" Style="{StaticResource ShortcutLabel}" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource ShortcutKey}" Margin="0,0,6,0">
+                            <TextBlock Text="{loc:Tr shortcuts.keysSearch}" Style="{StaticResource KeyCapText}" HorizontalAlignment="Center" />
+                        </Border>
+                        <Border Style="{StaticResource ShortcutKey}">
+                            <TextBlock Text="{loc:Tr shortcuts.keysSearchAlt}" Style="{StaticResource KeyCapText}" HorizontalAlignment="Center" />
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRow}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Tr shortcuts.help}" Style="{StaticResource ShortcutLabel}" />
+                    <Border Grid.Column="1" Style="{StaticResource ShortcutKey}">
+                        <TextBlock Text="{loc:Tr shortcuts.keysHelp}" Style="{StaticResource KeyCapText}" HorizontalAlignment="Center" />
+                    </Border>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRow}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Tr shortcuts.close}" Style="{StaticResource ShortcutLabel}" />
+                    <Border Grid.Column="1" Style="{StaticResource ShortcutKey}">
+                        <TextBlock Text="{loc:Tr shortcuts.keysClose}" Style="{StaticResource KeyCapText}" HorizontalAlignment="Center" />
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ui:FluentWindow>

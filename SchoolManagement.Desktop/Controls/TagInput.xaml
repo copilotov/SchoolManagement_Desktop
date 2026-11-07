@@ -1,0 +1,74 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.TagInput"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - tag editor. Enter adds the current text, the small close
+         button on each tag removes it, and duplicates are ignored. -->
+    <Border Background="{DynamicResource Surface.Card}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource Radius.Control}"
+            Padding="6,6,6,4">
+        <StackPanel>
+            <ItemsControl ItemsSource="{Binding Tags, ElementName=Root}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{DynamicResource Surface.Alt}"
+                                BorderBrush="{DynamicResource Border.Subtle}"
+                                BorderThickness="1"
+                                CornerRadius="{StaticResource Radius.Pill}"
+                                Padding="8,2,4,2"
+                                Margin="0,0,6,4">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource Text.Caption}"
+                                           VerticalAlignment="Center"
+                                           Text="{Binding}" />
+                                <Button Style="{StaticResource Button.Icon}"
+                                        Width="18"
+                                        Height="18"
+                                        MinWidth="18"
+                                        MinHeight="18"
+                                        Margin="4,0,0,0"
+                                        Padding="0"
+                                        AutomationProperties.Name="{loc:Tr common.clear}"
+                                        Click="OnRemoveTagClick">
+                                    <TextBlock Style="{StaticResource Icon.Glyph}"
+                                               FontSize="8"
+                                               Text="{StaticResource Icon.Clear}" />
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Grid Margin="0,2,0,0">
+                <TextBox x:Name="Input"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Padding="2,0"
+                         MinHeight="28"
+                         VerticalContentAlignment="Center"
+                         Text="{Binding NewTagText, ElementName=Root, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         KeyDown="OnInputKeyDown" />
+
+                <TextBlock Style="{StaticResource Text.Body}"
+                           Foreground="{DynamicResource Text.Disabled}"
+                           Margin="4,0,0,0"
+                           VerticalAlignment="Center"
+                           IsHitTestVisible="False"
+                           Text="{Binding Placeholder, ElementName=Root}"
+                           Visibility="{Binding NewTagText, ElementName=Root, Converter={StaticResource InverseStringToVisibility}}" />
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

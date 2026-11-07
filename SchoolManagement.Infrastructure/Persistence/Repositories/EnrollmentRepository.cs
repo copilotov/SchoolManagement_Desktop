@@ -12,6 +12,8 @@ namespace SchoolManagement.Infrastructure.Persistence.Repositories;
 
 public sealed class EnrollmentRepository : GenericRepository<Enrollment>, IEnrollmentRepository
 {
+    private static readonly SemaphoreSlim EnrollmentGate = new(1, 1);
+
     public EnrollmentRepository(
         IDbContextFactory<SchoolManagementDbContext> contextFactory,
         ITrustedClock clock,
@@ -83,6 +85,84 @@ public sealed class EnrollmentRepository : GenericRepository<Enrollment>, IEnrol
                     cancellationToken)
                 .ConfigureAwait(false),
             cancellationToken);
+
+    public Task<Result<bool>> ExistsActiveAsync(
+        int groupId,
+        int studentId,
+        CancellationToken cancellationToken = default)
+        => RunAsync(
+            "Enrollments.ExistsActive",
+            async context => await context.Enrollments
+                .AsNoTracking()
+                .AnyAsync(
+                    enrollment => enrollment.GroupId == groupId
+                        && enrollment.StudentId == studentId
+                        && enrollment.Status == EnrollmentStatuses.Active,
+                    cancellationToken)
+                .ConfigureAwait(false),
+            cancellationToken);
+
+    public async Task<Result<SchoolManagement.Application.Groups.EnrollmentSaveOutcome>> EnrollAsync(
+        SchoolManagement.Application.Groups.EnrollmentSaveRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        await EnrollmentGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await RunResultAsync(
+                "Enrollments.Enroll",
+                async context =>
+                {
+                    var now = Clock.LocalNow;
+                    var existing = await context.Enrollments
+                        .FirstOrDefaultAsync(
+                            enrollment => enrollment.GroupId == request.GroupId
+                                && enrollment.StudentId == request.StudentId
+                                && enrollment.Status == EnrollmentStatuses.Active,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+
+                    if (existing is not null)
+                    {
+                        return Result<SchoolManagement.Application.Groups.EnrollmentSaveOutcome>.Success(
+                            new SchoolManagement.Application.Groups.EnrollmentSaveOutcome(
+                                existing.Id,
+                                Created: false,
+                                AlreadyEnrolled: true));
+                    }
+
+                    var today = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
+                    var enrollment = new Enrollment
+                    {
+                        SchoolId = 1,
+                        StudentId = request.StudentId,
+                        GroupId = request.GroupId,
+                        EnrollmentDate = today,
+                        RegistrationFee = 0,
+                        Status = EnrollmentStatuses.Active,
+                        Notes = request.Notes,
+                        CreatedAt = now,
+                        UpdatedAt = now,
+                    };
+
+                    context.Enrollments.Add(enrollment);
+                    await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                    return Result<SchoolManagement.Application.Groups.EnrollmentSaveOutcome>.Success(
+                        new SchoolManagement.Application.Groups.EnrollmentSaveOutcome(
+                            enrollment.Id,
+                            Created: true,
+                            AlreadyEnrolled: false));
+                },
+                cancellationToken,
+                TranslationKeys.Errors.SaveError).ConfigureAwait(false);
+        }
+        finally
+        {
+            EnrollmentGate.Release();
+        }
+    }
 
     public Task<Result<bool>> SetStatusAsync(
         int enrollmentId,

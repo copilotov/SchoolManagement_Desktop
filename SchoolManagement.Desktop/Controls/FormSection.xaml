@@ -1,0 +1,24 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.FormSection"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - grouped form section with a heading, a hint and a divider. -->
+    <Border Style="{StaticResource Component.Card}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource Component.SectionTitle}"
+                       Text="{Binding Title, ElementName=Root}"
+                       Visibility="{Binding Title, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+
+            <TextBlock Style="{StaticResource Component.Hint}"
+                       Text="{Binding Description, ElementName=Root}"
+                       Visibility="{Binding Description, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+
+            <Border Style="{StaticResource Divider}" Margin="0,0,0,12" />
+
+            <ContentPresenter Content="{Binding SectionContent, ElementName=Root}" />
+        </StackPanel>
+    </Border>
+</UserControl>

@@ -1,0 +1,36 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.CapacityBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - capacity meter. The fill turns warning at 80% and danger at
+         100%, so a full group is visible without reading the number. -->
+    <StackPanel>
+        <Grid Margin="0,0,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Style="{StaticResource Text.Caption}"
+                       Foreground="{DynamicResource Text.Secondary}"
+                       TextTrimming="CharacterEllipsis"
+                       Text="{Binding Caption, ElementName=Root}"
+                       Visibility="{Binding Caption, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+
+            <TextBlock x:Name="ValueBlock"
+                       Grid.Column="1"
+                       Style="{StaticResource Text.Numeric}"
+                       Text="{Binding CapacityText, ElementName=Root}"
+                       Visibility="{Binding ShowValue, ElementName=Root, Converter={StaticResource BoolToVisibility}}" />
+        </Grid>
+
+        <ProgressBar x:Name="Bar"
+                     Height="6"
+                     Minimum="0"
+                     AutomationProperties.Name="{Binding CapacityText, ElementName=Root}" />
+    </StackPanel>
+</UserControl>

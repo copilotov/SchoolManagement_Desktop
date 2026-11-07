@@ -3,7 +3,273 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization"
              xmlns:views="clr-namespace:SchoolManagement.Desktop.Views">
-    <views:EmptyPageView Title="{loc:Tr students.title}"
-                         Description="{loc:Tr common.noData}"
-                         Glyph="&#xE716;" />
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding EditSelectedCommand}" />
+        <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />
+        <KeyBinding Key="Escape" Command="{Binding CancelEditorCommand}" />
+        <KeyBinding Key="Enter" Command="{Binding SaveEditorCommand}" />
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="24">
+            <StackPanel DockPanel.Dock="Top">
+                <Grid>
+                    <TextBlock Text="{loc:Tr students.title}"
+                               Style="{StaticResource PageTitle}" />
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center">
+                        <Button Content="{loc:Tr students.add}"
+                                Command="{Binding AddCommand}"
+                                Style="{StaticResource PrimaryButton}" />
+                        <Button Content="{loc:Tr students.importCsv}"
+                                Command="{Binding ImportCsvCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="10,0,0,0" />
+                        <Button Content="{loc:Tr students.importExcel}"
+                                Command="{Binding ImportExcelCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="8,0,0,0" />
+                        <Button Content="{loc:Tr students.exportCsv}"
+                                Command="{Binding ExportCsvCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="8,0,0,0" />
+                        <Button Content="{loc:Tr students.exportExcel}"
+                                Command="{Binding ExportExcelCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="8,0,0,0" />
+                        <Button Content="{loc:Tr students.printQrCodes}"
+                                Command="{Binding OpenQrPrintCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="8,0,0,0" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="0,16,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0"
+                             MaxWidth="280"
+                             HorizontalAlignment="Left"
+                             MinWidth="200"
+                             ToolTip="{loc:Tr students.searchHint}"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                    <ComboBox Grid.Column="1"
+                              Width="140"
+                              Margin="12,0,0,0"
+                              ToolTip="{loc:Tr students.filterLevel}"
+                              ItemsSource="{Binding Levels}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedLevel, Mode=TwoWay}" />
+                    <ComboBox Grid.Column="2"
+                              Width="140"
+                              Margin="8,0,0,0"
+                              ToolTip="{loc:Tr students.filterGrade}"
+                              ItemsSource="{Binding Grades}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedGrade, Mode=TwoWay}" />
+                    <ComboBox Grid.Column="3"
+                              Width="140"
+                              Margin="8,0,0,0"
+                              ToolTip="{loc:Tr students.filterGroup}"
+                              ItemsSource="{Binding Groups}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" />
+                    <ComboBox Grid.Column="4"
+                              Width="130"
+                              Margin="8,0,0,0"
+                              ToolTip="{loc:Tr students.filterStatus}"
+                              ItemsSource="{Binding Statuses}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedStatus, Mode=TwoWay}" />
+                    <ComboBox Grid.Column="5"
+                              Width="130"
+                              Margin="8,0,0,0"
+                              ItemsSource="{Binding SortOptions}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedSort, Mode=TwoWay}" />
+                    <StackPanel Grid.Column="6" Orientation="Horizontal">
+                        <CheckBox Margin="12,0,0,0"
+                                  VerticalAlignment="Center"
+                                  IsChecked="{Binding SortDescending, Mode=TwoWay}"
+                                  Content="{loc:Tr common.sortDescending}" />
+                        <Button Content="{loc:Tr common.refresh}"
+                                Command="{Binding ReloadCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="8,0,0,0" />
+                    </StackPanel>
+                </Grid>
+
+                <Border Background="{DynamicResource Brush.SurfaceVariant}"
+                        BorderBrush="{DynamicResource Brush.Danger}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="12,8"
+                        Margin="0,12,0,0"
+                        Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding ErrorMessage}"
+                                   Foreground="{DynamicResource Brush.Danger}"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center" />
+                        <Button Content="{loc:Tr license.renewNow}"
+                                Command="{Binding RenewLicenseCommand}"
+                                Style="{StaticResource LinkButton}"
+                                Margin="12,0,0,0"
+                                Visibility="{Binding IsRenewVisible, Converter={StaticResource BoolToVisibility}}" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="{DynamicResource Brush.Success}"
+                           Margin="0,12,0,0"
+                           Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibility}}" />
+            </StackPanel>
+
+            <DataGrid ItemsSource="{Binding Items}"
+                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                      CanUserSortColumns="False"
+                      IsReadOnly="True"
+                      AutoGenerateColumns="False"
+                      Margin="0,14,0,0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="{loc:Tr students.sortCode}"
+                                        Binding="{Binding StudentCode}"
+                                        Width="130" />
+                    <DataGridTextColumn Header="{loc:Tr students.firstName}"
+                                        Binding="{Binding FirstName}"
+                                        Width="130" />
+                    <DataGridTextColumn Header="{loc:Tr students.lastName}"
+                                        Binding="{Binding LastName}"
+                                        Width="130" />
+                    <DataGridTextColumn Header="{loc:Tr students.phone}"
+                                        Binding="{Binding Phone}"
+                                        Width="120" />
+                    <DataGridTextColumn Header="{loc:Tr students.filterLevel}"
+                                        Binding="{Binding LevelName}"
+                                        Width="100" />
+                    <DataGridTextColumn Header="{loc:Tr students.filterGrade}"
+                                        Binding="{Binding GradeName}"
+                                        Width="100" />
+                    <DataGridTextColumn Header="{loc:Tr students.filterGroup}"
+                                        Binding="{Binding GroupNames}"
+                                        Width="130" />
+                    <DataGridTemplateColumn Header="{loc:Tr students.filterStatus}" Width="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock>
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="{Binding Status}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Status}" Value="active">
+                                                    <Setter Property="Text" Value="{loc:Tr students.active}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status}" Value="inactive">
+                                                    <Setter Property="Text" Value="{loc:Tr students.inactive}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status}" Value="withdrawn">
+                                                    <Setter Property="Text" Value="{loc:Tr students.withdrawn}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="{loc:Tr students.guardianName}"
+                                        Binding="{Binding GuardianName}"
+                                        Width="150" />
+                    <DataGridTemplateColumn Header="{loc:Tr common.actions}" Width="330">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="{loc:Tr students.details}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.DetailsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" />
+                                    <Button Content="{loc:Tr common.edit}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="8,0,0,0" />
+                                    <Button Content="{loc:Tr students.printCard}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.PrintCardCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="8,0,0,0" />
+                                    <Button Content="{loc:Tr common.delete}"
+                                            Style="{StaticResource LinkButton}"
+                                            Foreground="{DynamicResource Brush.Danger}"
+                                            Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="8,0,0,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+
+        <!-- Shared add/edit form -->
+        <Border Style="{StaticResource EditorOverlay}"
+                Panel.ZIndex="10"
+                Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource EditorCard}">
+                <views:StudentFormView DataContext="{Binding}" />
+            </Border>
+        </Border>
+
+        <!-- Import report -->
+        <Border Style="{StaticResource EditorOverlay}"
+                Panel.ZIndex="20"
+                Visibility="{Binding IsImportReportOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource EditorCard}">
+                <StackPanel>
+                    <TextBlock Text="{Binding ImportReportTitle}"
+                               Style="{StaticResource SectionHeader}" />
+                    <TextBlock Text="{Binding ImportReportSummary}"
+                               Style="{StaticResource PageSubtitle}"
+                               Margin="0,0,0,12" />
+
+                    <DataGrid ItemsSource="{Binding ImportErrors}"
+                              IsReadOnly="True"
+                              AutoGenerateColumns="False"
+                              CanUserSortColumns="False"
+                              MaxHeight="360"
+                              MinWidth="520">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="{loc:Tr students.importReport}"
+                                                Binding="{Binding Row}"
+                                                Width="120" />
+                            <DataGridTextColumn Header="{loc:Tr students.fullName}"
+                                                Binding="{Binding Reference}"
+                                                Width="*" />
+                            <DataGridTextColumn Header="{loc:Tr common.error}"
+                                                Binding="{Binding Message}"
+                                                Width="2*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,18,0,0">
+                        <Button Content="{loc:Tr common.close}"
+                                Command="{Binding CloseImportReportCommand}"
+                                Style="{StaticResource PrimaryButton}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
 </UserControl>

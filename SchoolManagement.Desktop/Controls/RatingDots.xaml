@@ -1,0 +1,15 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.RatingDots"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - rating dots. Filled dots use the semantic tone; the click
+         target is the whole strip, so a keyboard user can also set the value
+         through the two-way binding. -->
+    <StackPanel x:Name="Host"
+                Orientation="Horizontal"
+                Background="Transparent"
+                MouseLeftButtonDown="OnMouseLeftButtonDown" />
+</UserControl>

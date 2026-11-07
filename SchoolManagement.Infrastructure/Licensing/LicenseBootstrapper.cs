@@ -4,24 +4,31 @@ using SchoolManagement.Application.Licensing;
 namespace SchoolManagement.Infrastructure.Licensing;
 
 /// <summary>
-/// Phase 1 bootstrap hook only. Ed25519 verification, DPAPI storage, device
-/// fingerprint and the status calculator are implemented in the licensing
-/// phase; the status bar already reserves the space for the banner.
+/// Runs the license step of the startup order and returns data. It never
+/// throws for a missing or invalid license: those are states, not crashes.
 /// </summary>
 public sealed class LicenseBootstrapper : ILicenseBootstrapper
 {
+    private readonly ILicenseRepository _repository;
     private readonly ILogger<LicenseBootstrapper> _logger;
 
-    public LicenseBootstrapper(ILogger<LicenseBootstrapper> logger)
+    public LicenseBootstrapper(ILicenseRepository repository, ILogger<LicenseBootstrapper> logger)
     {
+        _repository = repository;
         _logger = logger;
     }
 
-    public Task<LicenseSnapshot> InitializeAsync(CancellationToken cancellationToken = default)
+    public async Task<LicenseInfo> InitializeAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        _logger.LogInformation("Licensing is not implemented in Phase 1; reporting Unlicensed.");
-        return Task.FromResult(new LicenseSnapshot(LicenseStatus.Unlicensed));
+        var info = await _repository.LoadAndVerifyAsync(cancellationToken).ConfigureAwait(false);
+        _logger.LogInformation(
+            "License status: {Status}; clock tampered: {ClockTampered}; reason: {Reason}",
+            info.Status,
+            info.ClockTampered,
+            info.FailureReason);
+
+        return info;
     }
 }

@@ -1,0 +1,142 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+
+    <!-- =====================================================================
+         Phase D1 - Typography.
+
+         Arabic family: Cairo (bundled in Resources/Fonts). Chosen because it is
+         already shipped with the app, it is a humanist Kufi face designed for
+         UI text, and it carries a complete Latin set, so Arabic labels and
+         Latin codes/amounts share one family and one baseline inside RTL
+         tables. That removes the baseline jump a mixed Arabic/Latin pair
+         produces in dense DataGrids.
+
+         Latin/numeric family: Segoe UI Variable (Windows 11 system font) with a
+         Segoe UI fallback, used for tabular amounts so columns line up.
+         ===================================================================== -->
+
+    <FontFamily x:Key="Font.Family">pack://application:,,,/Resources/Fonts/#Cairo</FontFamily>
+    <FontFamily x:Key="Font.Family.Latin">Segoe UI Variable Text, Segoe UI</FontFamily>
+    <FontFamily x:Key="Font.Family.Display">Segoe UI Variable Display, Segoe UI</FontFamily>
+    <FontFamily x:Key="Font.Family.Icons">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+
+    <!-- Fixed size scale (no per-screen ad-hoc sizes) -->
+    <sys:Double x:Key="Font.Size.Display">32</sys:Double>
+    <sys:Double x:Key="Font.Size.Title">24</sys:Double>
+    <sys:Double x:Key="Font.Size.Subtitle">18</sys:Double>
+    <sys:Double x:Key="Font.Size.Body">14</sys:Double>
+    <sys:Double x:Key="Font.Size.BodySmall">13</sys:Double>
+    <sys:Double x:Key="Font.Size.Caption">12</sys:Double>
+    <sys:Double x:Key="Font.Size.Micro">11</sys:Double>
+    <sys:Double x:Key="Font.Size.Numeric">14</sys:Double>
+
+    <!-- Shared text behaviours -->
+    <Style x:Key="Text.Base" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Family}" />
+        <Setter Property="Foreground" Value="{DynamicResource Text.Primary}" />
+        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <!-- Display: splash/activation hero only -->
+    <Style x:Key="Text.Display" TargetType="TextBlock" BasedOn="{StaticResource Text.Base}">
+        <Setter Property="FontSize" Value="{StaticResource Font.Size.Display}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="LineHeight" Value="40" />
+        <Setter Property="TextTrimming" Value="None" />
+    </Style>
+
+    <!-- Title: page heading -->
+    <Style x:Key="Text.Title" TargetType="TextBlock" BasedOn="{StaticResource Text.Base}">
+        <Setter Property="FontSize" Value="{StaticResource Font.Size.Title}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="LineHeight" Value="32" />
+        <Setter Property="TextTrimming" Value="None" />
+    </Style>
+
+    <!-- Subtitle: card and section headings -->
+    <Style x:Key="Text.Subtitle" TargetType="TextBlock" BasedOn="{StaticResource Text.Base}">
+        <Setter Property="FontSize" Value="{StaticResource Font.Size.Subtitle}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="LineHeight" Value="24" />
+        <Setter Property="TextTrimming" Value="None" />
+    </Style>
+
+    <!-- Body: default content -->
+    <Style x:Key="Text.Body" TargetType="TextBlock" BasedOn="{StaticResource Text.Base}">
+        <Setter Property="FontSize" Value="{StaticResource Font.Size.Body}" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="LineHeight" Value="20" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="TextTrimming" Value="None" />
+    </Style>
+
+    <Style x:Key="Text.BodyStrong" TargetType="TextBlock" BasedOn="{StaticResource Text.Body}">
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style x:Key="Text.BodySmall" TargetType="TextBlock" BasedOn="{StaticResource Text.Body}">
+        <Setter Property="FontSize" Value="{StaticResource Font.Size.BodySmall}" />
+        <Setter Property="LineHeight" Value="18" />
+    </Style>
+
+    <!-- Caption: hints, metadata, status text -->
+    <Style x:Key="Text.Caption" TargetType="TextBlock" BasedOn="{StaticResource Text.Base}">
+        <Setter Property="FontSize" Value="{StaticResource Font.Size.Caption}" />
+        <Setter Property="Foreground" Value="{DynamicResource Text.Secondary}" />
+        <Setter Property="LineHeight" Value="16" />
+    </Style>
+
+    <!-- Label: field labels above inputs -->
+    <Style x:Key="Text.Label" TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,0,0,4" />
+        <Setter Property="TextTrimming" Value="None" />
+    </Style>
+
+    <!-- Numeric: tabular figures for money and counters -->
+    <Style x:Key="Text.Numeric" TargetType="TextBlock" BasedOn="{StaticResource Text.Base}">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Family.Latin}" />
+        <Setter Property="FontSize" Value="{StaticResource Font.Size.Numeric}" />
+        <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
+        <Setter Property="TextAlignment" Value="Left" />
+        <Setter Property="FlowDirection" Value="LeftToRight" />
+        <Setter Property="TextTrimming" Value="None" />
+    </Style>
+
+    <Style x:Key="Text.Numeric.Large" TargetType="TextBlock" BasedOn="{StaticResource Text.Numeric}">
+        <Setter Property="FontSize" Value="{StaticResource Font.Size.Title}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- Icon glyph: one family, one size, mirrors through Behaviors/RtlMirrorBehavior -->
+    <Style x:Key="Icon.Glyph" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Family.Icons}" />
+        <Setter Property="FontSize" Value="{StaticResource Font.Size.Subtitle}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="TextAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{DynamicResource Text.Primary}" />
+        <Setter Property="TextOptions.TextRenderingMode" Value="Auto" />
+    </Style>
+
+    <!-- =====================================================================
+         Legacy aliases used by Phase 1-7 screens.
+         ===================================================================== -->
+    <Style x:Key="PageTitle" TargetType="TextBlock" BasedOn="{StaticResource Text.Title}" />
+    <Style x:Key="PageSubtitle" TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
+        <Setter Property="FontSize" Value="{StaticResource Font.Size.BodySmall}" />
+    </Style>
+    <Style x:Key="SectionHeader" TargetType="TextBlock" BasedOn="{StaticResource Text.Subtitle}">
+        <Setter Property="FontSize" Value="16" />
+    </Style>
+    <Style x:Key="StatusText" TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource Text.Label}">
+        <Setter Property="Margin" Value="0,12,0,4" />
+    </Style>
+
+</ResourceDictionary>

@@ -18,6 +18,18 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <!-- Phase D1: Fluent 2 / Windows 11 design system foundation (Mica,
+         Fluent controls, theme manager). Fully offline at runtime. -->
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+    <!-- Phase 7: webcam frames for the QR attendance scanner. The decoder itself
+         lives in Infrastructure (ZXing.Net + SkiaSharp); this package only
+         captures a frame. -->
+    <PackageReference Include="OpenCvSharp4.Windows" Version="4.10.0.20240616" />
+    <!-- Phase D3: charts. rc3.3 is the only line that depends on
+         SkiaSharp.Views.WPF 2.88.8, matching Infrastructure's SkiaSharp
+         2.88.8; newer builds require SkiaSharp 3.x and would load two native
+         Skia copies. Fully offline at runtime. -->
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.0-rc3.3" />
   </ItemGroup>
 
   <ItemGroup>

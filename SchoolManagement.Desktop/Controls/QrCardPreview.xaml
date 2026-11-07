@@ -1,0 +1,78 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.QrCardPreview"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - printable QR card. The whole card is a fixed 320x420 design
+         inside a Viewbox, so it scales to the available space and never
+         overflows its host, at any DPI. -->
+    <Viewbox Stretch="Uniform" StretchDirection="Both">
+        <Border Width="320" Height="420" Style="{StaticResource Component.QrPaper}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0">
+                    <TextBlock Style="{StaticResource Text.Subtitle}"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               Text="{Binding Title, ElementName=Root}" />
+                    <TextBlock Style="{StaticResource Text.Caption}"
+                               Foreground="{DynamicResource Text.Secondary}"
+                               Margin="0,4,0,0"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               Text="{Binding Subtitle, ElementName=Root}"
+                               Visibility="{Binding Subtitle, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+                </StackPanel>
+
+                <Border Grid.Row="1"
+                        Margin="0,16,0,16"
+                        Background="{DynamicResource Surface.Base}"
+                        BorderBrush="{DynamicResource Border.Subtle}"
+                        BorderThickness="1"
+                        CornerRadius="{StaticResource Radius.Element}">
+                    <Grid>
+                        <Image Source="{Binding QrImage, ElementName=Root}"
+                               Stretch="Uniform"
+                               Margin="12"
+                               RenderOptions.BitmapScalingMode="HighQuality"
+                               Visibility="{Binding QrImage, ElementName=Root, Converter={StaticResource ObjectToVisibility}}" />
+
+                        <TextBlock Style="{StaticResource Icon.Glyph}"
+                                   FontSize="72"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource Text.Disabled}"
+                                   Text="{StaticResource Icon.Qr}"
+                                   Visibility="{Binding QrImage, ElementName=Root, Converter={StaticResource NullToVisibility}}" />
+                    </Grid>
+                </Border>
+
+                <TextBlock Grid.Row="2"
+                           Style="{StaticResource Text.Numeric}"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"
+                           Text="{Binding Code, ElementName=Root}" />
+
+                <TextBlock Grid.Row="3"
+                           Style="{StaticResource Text.Caption}"
+                           Foreground="{DynamicResource Text.Secondary}"
+                           Margin="0,4,0,0"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           Text="{Binding Footer, ElementName=Root}"
+                           Visibility="{Binding Footer, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+            </Grid>
+        </Border>
+    </Viewbox>
+</UserControl>

@@ -1,0 +1,347 @@
+<UserControl x:Class="SchoolManagement.Desktop.Views.AttendancePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization">
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding ReloadCommand}" />
+        <KeyBinding Key="G" Modifiers="Control" Command="{Binding GenerateSessionsCommand}" />
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="24">
+            <StackPanel DockPanel.Dock="Top">
+                <Grid>
+                    <TextBlock Text="{loc:Tr attendance.title}"
+                               Style="{StaticResource PageTitle}" />
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center">
+                        <Button Content="{loc:Tr homework.reportTitle}"
+                                Command="{Binding OpenHomeworksCommand}"
+                                Style="{StaticResource SecondaryButton}" />
+                        <Button Content="{loc:Tr reports.attendanceReport}"
+                                Command="{Binding OpenReportCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="8,0,0,0" />
+                        <Button Content="{loc:Tr attendance.createSession}"
+                                Command="{Binding OpenExtraSessionCommand}"
+                                Style="{StaticResource PrimaryButton}"
+                                Margin="8,0,0,0" />
+                    </StackPanel>
+                </Grid>
+
+                <TabControl SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}"
+                            Margin="0,14,0,0">
+                    <TabItem Header="{loc:Tr attendance.todaySessions}" />
+                    <TabItem Header="{loc:Tr attendance.allSessions}" />
+                </TabControl>
+
+                <Grid Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Text="{loc:Tr attendance.sessionDate}"
+                               Style="{StaticResource FieldLabel}"
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0" />
+                    <TextBox Grid.Column="1"
+                             Text="{Binding SelectedDate, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Column="2"
+                               Text="{loc:Tr groups.name}"
+                               Style="{StaticResource FieldLabel}"
+                               VerticalAlignment="Center"
+                               Margin="16,0,8,0" />
+                    <ComboBox Grid.Column="3"
+                              ItemsSource="{Binding Groups}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" />
+                    <Button Grid.Column="5"
+                            Content="{loc:Tr groups.generateSessions}"
+                            Command="{Binding GenerateSessionsCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="12,0,0,0" />
+                    <Button Grid.Column="6"
+                            Content="{loc:Tr common.refresh}"
+                            Command="{Binding ReloadCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="8,0,0,0" />
+                </Grid>
+
+                <Border Background="{DynamicResource Brush.SurfaceVariant}"
+                        BorderBrush="{DynamicResource Brush.Danger}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="12,8"
+                        Margin="0,12,0,0"
+                        Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding ErrorMessage}"
+                                   Foreground="{DynamicResource Brush.Danger}"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center" />
+                        <Button Content="{loc:Tr license.renewNow}"
+                                Command="{Binding RenewLicenseCommand}"
+                                Style="{StaticResource LinkButton}"
+                                Margin="12,0,0,0"
+                                Visibility="{Binding IsRenewVisible, Converter={StaticResource BoolToVisibility}}" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="{DynamicResource Brush.Success}"
+                           Margin="0,12,0,0"
+                           Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibility}}" />
+
+                <TextBlock Text="{Binding EmptyMessage}"
+                           Style="{StaticResource PageSubtitle}"
+                           Margin="0,12,0,0"
+                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}" />
+            </StackPanel>
+
+            <DataGrid ItemsSource="{Binding Items}"
+                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                      CanUserSortColumns="False"
+                      IsReadOnly="True"
+                      AutoGenerateColumns="False"
+                      Margin="0,14,0,0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="{loc:Tr attendance.sessionDate}"
+                                        Binding="{Binding DateText}"
+                                        Width="170" />
+                    <DataGridTextColumn Header="{loc:Tr common.time}"
+                                        Binding="{Binding TimeText}"
+                                        Width="110" />
+                    <DataGridTextColumn Header="{loc:Tr groups.name}"
+                                        Binding="{Binding GroupName}"
+                                        Width="140" />
+                    <DataGridTextColumn Header="{loc:Tr attendance.sessionType}"
+                                        Binding="{Binding TypeText}"
+                                        Width="90" />
+                    <DataGridTextColumn Header="{loc:Tr common.status}"
+                                        Binding="{Binding StatusText}"
+                                        Width="100" />
+                    <DataGridTextColumn Header="{loc:Tr attendance.topic}"
+                                        Binding="{Binding TopicText}"
+                                        Width="*" />
+                    <DataGridTextColumn Header="{loc:Tr attendance.paymentStatus}"
+                                        Binding="{Binding PaymentText}"
+                                        Width="100" />
+                    <DataGridTextColumn Header="{loc:Tr attendance.cancelReason}"
+                                        Binding="{Binding CancelReasonText}"
+                                        Width="150" />
+
+                    <DataGridTemplateColumn Header="{loc:Tr common.actions}" Width="430">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="{loc:Tr attendance.takeAttendance}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.TakeAttendanceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Visibility="{Binding CanTakeAttendance, Converter={StaticResource BoolToVisibility}}" />
+                                    <Button Content="{loc:Tr attendance.startSession}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.StartSessionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Visibility="{Binding CanTakeAttendance, Converter={StaticResource BoolToVisibility}}"
+                                            Margin="8,0,0,0" />
+                                    <Button Content="{loc:Tr attendance.cancelSession}"
+                                            Style="{StaticResource LinkButton}"
+                                            Foreground="{DynamicResource Brush.Danger}"
+                                            Command="{Binding DataContext.CancelSessionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Visibility="{Binding CanCancel, Converter={StaticResource BoolToVisibility}}"
+                                            Margin="8,0,0,0" />
+                                    <Button Content="{loc:Tr attendance.postponeSession}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.PostponeSessionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Visibility="{Binding CanPostpone, Converter={StaticResource BoolToVisibility}}"
+                                            Margin="8,0,0,0" />
+                                    <Button Content="{loc:Tr attendance.restoreSession}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.RestoreSessionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Visibility="{Binding HasCancelReason, Converter={StaticResource BoolToVisibility}}"
+                                            Margin="8,0,0,0" />
+                                    <Button Content="{loc:Tr attendance.pay}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.OpenPayCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Visibility="{Binding CanPay, Converter={StaticResource BoolToVisibility}}"
+                                            Margin="8,0,0,0" />
+                                    <Button Content="{loc:Tr attendance.exempt}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.OpenExemptCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Visibility="{Binding CanPay, Converter={StaticResource BoolToVisibility}}"
+                                            Margin="8,0,0,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+
+        <!-- Extra / makeup session form -->
+        <Border Style="{StaticResource EditorOverlay}"
+                Panel.ZIndex="10"
+                Visibility="{Binding IsExtraSessionOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource EditorCard}">
+                <StackPanel>
+                    <TextBlock Text="{loc:Tr attendance.createSession}"
+                               Style="{StaticResource SectionHeader}"
+                               Margin="0,0,0,12" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Grid.Column="0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{loc:Tr groups.name}" Style="{StaticResource FieldLabel}" />
+                                <TextBlock Text="*"
+                                           Style="{StaticResource FieldLabel}"
+                                           Foreground="{DynamicResource Brush.Danger}"
+                                           ToolTip="{loc:Tr common.required}" />
+                            </StackPanel>
+                            <ComboBox ItemsSource="{Binding ExtraGroups}"
+                                      DisplayMemberPath="Label"
+                                      SelectedItem="{Binding SelectedExtraGroup, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="0" Grid.Column="2">
+                            <TextBlock Text="{loc:Tr attendance.sessionType}" Style="{StaticResource FieldLabel}" />
+                            <ComboBox ItemsSource="{Binding SessionTypes}"
+                                      DisplayMemberPath="Label"
+                                      SelectedItem="{Binding SelectedExtraType, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{loc:Tr attendance.sessionDate}" Style="{StaticResource FieldLabel}" />
+                                <TextBlock Text="*"
+                                           Style="{StaticResource FieldLabel}"
+                                           Foreground="{DynamicResource Brush.Danger}"
+                                           ToolTip="{loc:Tr common.required}" />
+                            </StackPanel>
+                            <TextBox Text="{Binding ExtraDate, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="2">
+                            <TextBlock Text="{loc:Tr attendance.extraPrice}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding ExtraPrice, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Grid.Column="0">
+                            <TextBlock Text="{loc:Tr common.start}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding ExtraStartTime, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Grid.Column="2">
+                            <TextBlock Text="{loc:Tr common.end}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding ExtraEndTime, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="3" Grid.Column="0">
+                            <TextBlock Text="{loc:Tr attendance.topic}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding ExtraTopic, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="3" Grid.Column="2">
+                            <TextBlock Text="{loc:Tr common.notes}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding ExtraNotes, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,18,0,0">
+                        <Button Content="{loc:Tr common.cancel}"
+                                Command="{Binding CancelExtraSessionCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="0,0,10,0" />
+                        <Button Content="{loc:Tr common.save}"
+                                Command="{Binding SaveExtraSessionCommand}"
+                                Style="{StaticResource PrimaryButton}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- Cancel / postpone reason -->
+        <Border Style="{StaticResource EditorOverlay}"
+                Panel.ZIndex="11"
+                Visibility="{Binding IsStatusOverlayOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource EditorCard}" MaxWidth="520">
+                <StackPanel>
+                    <TextBlock Text="{Binding StatusOverlayTitle}"
+                               Style="{StaticResource SectionHeader}"
+                               Margin="0,0,0,12" />
+                    <TextBlock Text="{loc:Tr attendance.cancelReason}" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding StatusReason, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="{loc:Tr attendance.cancelReasonHint}" />
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,18,0,0">
+                        <Button Content="{loc:Tr common.cancel}"
+                                Command="{Binding CancelStatusOverlayCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="0,0,10,0" />
+                        <Button Content="{loc:Tr common.confirm}"
+                                Command="{Binding ConfirmStatusCommand}"
+                                Style="{StaticResource PrimaryButton}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- Pay / exempt extra session -->
+        <Border Style="{StaticResource EditorOverlay}"
+                Panel.ZIndex="12"
+                Visibility="{Binding IsPaymentOverlayOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource EditorCard}" MaxWidth="520">
+                <StackPanel>
+                    <TextBlock Text="{Binding PaymentOverlayTitle}"
+                               Style="{StaticResource SectionHeader}"
+                               Margin="0,0,0,12" />
+                    <TextBlock Text="{loc:Tr attendance.paymentAmount}" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding PaymentAmount, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="{loc:Tr attendance.paymentMethod}"
+                               Style="{StaticResource FieldLabel}"
+                               Margin="0,10,0,0" />
+                    <ComboBox ItemsSource="{Binding PaymentMethods}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedPaymentMethod, Mode=TwoWay}" />
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,18,0,0">
+                        <Button Content="{loc:Tr common.cancel}"
+                                Command="{Binding CancelPaymentCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="0,0,10,0" />
+                        <Button Content="{loc:Tr common.save}"
+                                Command="{Binding ConfirmPaymentCommand}"
+                                Style="{StaticResource PrimaryButton}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

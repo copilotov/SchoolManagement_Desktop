@@ -33,9 +33,12 @@ public partial class App : WpfApplication
     private BootstrapWindowController? _bootstrapController;
     private BootstrapGate? _bootstrapGate;
     private ShellViewModel? _shellViewModel;
+    private LicenseViewModel? _licenseViewModel;
+    private LicenseInfo? _startupLicense;
     private AppPaths? _paths;
     private AppSettings _settings = new();
     private bool _isRetrying;
+    private bool _isShowingActivation;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -75,7 +78,7 @@ public partial class App : WpfApplication
 
         try
         {
-            ShowShell();
+            await ShowMainWindowAsync();
         }
         catch (Exception exception)
         {
@@ -89,8 +92,9 @@ public partial class App : WpfApplication
         _bootstrapController = null;
 
         // Alt+F4 on the error screen must exit instead of leaving a hidden
-        // process alive under OnExplicitShutdown.
-        if (MainWindow is null)
+        // process alive under OnExplicitShutdown. While the activation window is
+        // the only screen, closing the splash is intentional, not an exit.
+        if (MainWindow is null && !_isShowingActivation)
         {
             Shutdown();
         }
@@ -178,25 +182,63 @@ public partial class App : WpfApplication
         var database = _host.Services.GetRequiredService<IDatabaseInitializer>();
         await database.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
-        // 5. License bootstrap. Phase 1 reports Unlicensed; the status bar has
-        //    already reserved the banner space for the licensing phase.
+        // 5. License bootstrap. The result decides the first screen: only a
+        //    missing/invalid license goes to the activation window.
         var licensing = _host.Services.GetRequiredService<ILicenseBootstrapper>();
-        await licensing.InitializeAsync(cancellationToken).ConfigureAwait(false);
+        _startupLicense = await licensing.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
         // 6. Theme is applied before the shell is created, without restart.
         var theme = _host.Services.GetRequiredService<IThemeService>();
         theme.Apply(_settings.Theme);
     }
 
-    private void ShowShell()
+    private async Task ShowMainWindowAsync()
     {
         if (_host is null)
         {
             throw new InvalidOperationException("The dependency injection host is not ready.");
         }
 
+        var license = _host.Services.GetRequiredService<LicenseViewModel>();
+        _licenseViewModel = license;
+
+        // Reuse the bootstrap result: no second fingerprint/WMI read and no
+        // second trusted-clock write before the first window exists.
+        license.Apply(_startupLicense ?? LicenseInfo.Unlicensed(string.Empty));
+
+        if (license.Info.RequiresActivation)
+        {
+            // The splash is Topmost; close it before the modal activation
+            // window so the activation UI is actually visible.
+            _isShowingActivation = true;
+            try
+            {
+                _bootstrapController?.Close();
+                _bootstrapController = null;
+
+                var dialog = _host.Services.GetRequiredService<IActivationDialogService>();
+                var activated = await dialog.ShowAsync();
+                if (!activated)
+                {
+                    // Policy: warn and go read-only, but never run unlicensed.
+                    Shutdown();
+                    return;
+                }
+            }
+            finally
+            {
+                _isShowingActivation = false;
+            }
+
+            await license.RefreshAsync();
+        }
+
         var shellWindow = _host.Services.GetRequiredService<ShellWindow>();
         _shellViewModel = shellWindow.DataContext as ShellViewModel;
+
+        // Phase D2 - restore the saved geometry before the first frame so the
+        // shell never appears at the default size and then jumps.
+        await shellWindow.InitializePlacementAsync();
 
         MainWindow = shellWindow;
         ShutdownMode = ShutdownMode.OnMainWindowClose;
@@ -253,6 +295,7 @@ public partial class App : WpfApplication
     protected override void OnExit(ExitEventArgs e)
     {
         _shellViewModel?.Dispose();
+        _licenseViewModel?.Dispose();
 
         if (_bootstrapController is not null)
         {

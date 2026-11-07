@@ -1,1 +1,19 @@
 .vs/
+
+# Build output
+bin/
+obj/
+*.user
+*.suo
+
+# License signing material must never enter the repository.
+# The issuer private key lives outside the repo, under
+# %LOCALAPPDATA%\SchoolManagement\license_private.key.
+*.key
+*.pem
+*.pfx
+*.p12
+.secrets/
+license_private.key
+trusted_time.dat
+license.dat

@@ -1,0 +1,67 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.EmptyState"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - empty state: a theme-coloured vector illustration, a title,
+         a description and one optional action. -->
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="420" Margin="24">
+        <Viewbox Width="96" Height="96" HorizontalAlignment="Center"
+                 Visibility="{Binding Glyph, ElementName=Root, Converter={StaticResource InverseStringToVisibility}}">
+            <Canvas Width="96" Height="96">
+                <Ellipse Canvas.Left="8" Canvas.Top="8" Width="80" Height="80"
+                         Fill="{DynamicResource Accent.Container}" />
+                <Path Data="M30,32 L66,32 L66,66 L30,66 Z"
+                      Stroke="{DynamicResource Accent}"
+                      StrokeThickness="2"
+                      Fill="{DynamicResource Surface.Card}" />
+                <Path Data="M38,42 L58,42 M38,50 L58,50 M38,58 L50,58"
+                      Stroke="{DynamicResource Accent}"
+                      StrokeThickness="2"
+                      StrokeStartLineCap="Round"
+                      StrokeEndLineCap="Round" />
+                <Ellipse Canvas.Left="58" Canvas.Top="56" Width="22" Height="22"
+                         Fill="{DynamicResource Surface.Card}"
+                         Stroke="{DynamicResource Accent}"
+                         StrokeThickness="2" />
+                <Path Data="M63,67 L75,67 M69,61 L69,73"
+                      Stroke="{DynamicResource Accent}"
+                      StrokeThickness="2"
+                      StrokeStartLineCap="Round"
+                      StrokeEndLineCap="Round" />
+            </Canvas>
+        </Viewbox>
+
+        <TextBlock Style="{StaticResource Icon.Glyph}"
+                   FontSize="48"
+                   HorizontalAlignment="Center"
+                   Foreground="{DynamicResource Text.Disabled}"
+                   Text="{Binding Glyph, ElementName=Root}"
+                   Visibility="{Binding Glyph, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+
+        <TextBlock Style="{StaticResource Text.Subtitle}"
+                   Margin="0,16,0,0"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   Text="{Binding Title, ElementName=Root}" />
+
+        <TextBlock Style="{StaticResource Text.Body}"
+                   Foreground="{DynamicResource Text.Secondary}"
+                   Margin="0,8,0,0"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   Text="{Binding Description, ElementName=Root}"
+                   Visibility="{Binding Description, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+
+        <Button Style="{StaticResource Button.Primary}"
+                Margin="0,20,0,0"
+                HorizontalAlignment="Center"
+                Content="{Binding ActionText, ElementName=Root}"
+                Command="{Binding ActionCommand, ElementName=Root}"
+                Visibility="{Binding ActionCommand, ElementName=Root, Converter={StaticResource ObjectToVisibility}}" />
+    </StackPanel>
+</UserControl>

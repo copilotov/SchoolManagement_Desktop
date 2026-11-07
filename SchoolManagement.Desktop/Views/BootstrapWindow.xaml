@@ -1,6 +1,7 @@
 <Window x:Class="SchoolManagement.Desktop.Views.BootstrapWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:SchoolManagement.Desktop.Controls"
         Title=""
         Width="520"
         Height="360"
@@ -9,7 +10,7 @@
         WindowStartupLocation="CenterScreen"
         ShowInTaskbar="True"
         Topmost="True"
-        Background="#FAF8F5"
+        Background="{DynamicResource Surface.Base}"
         SnapsToDevicePixels="True">
 
     <!-- The splash has no translated text on purpose: translation is one of the
@@ -22,13 +23,13 @@
                    Width="128"
                    Height="128"
                    Stretch="Uniform" />
-            <ProgressBar IsIndeterminate="True"
-                         Width="180"
-                         Height="4"
-                         Margin="0,28,0,0"
-                         Foreground="{DynamicResource Brush.Primary}"
-                         Background="Transparent"
-                         BorderThickness="0" />
+            <controls:ProgressRing Width="36"
+                                   Height="36"
+                                   Thickness="3"
+                                   Margin="0,28,0,0"
+                                   IsIndeterminate="True"
+                                   Foreground="{DynamicResource Accent}"
+                                   TrackBrush="{DynamicResource Surface.Alt}" />
         </StackPanel>
 
         <StackPanel x:Name="ErrorPanel"

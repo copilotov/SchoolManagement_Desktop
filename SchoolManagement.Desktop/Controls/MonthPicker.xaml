@@ -1,0 +1,42 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.MonthPicker"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - YYYY-MM picker built from a month list and a year list. The
+         names are supplied by the caller (already localized), never guessed
+         from the machine culture. -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="8" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0">
+            <TextBlock Style="{StaticResource Text.Caption}"
+                       Foreground="{DynamicResource Text.Secondary}"
+                       Margin="0,0,0,4"
+                       Text="{loc:Tr common.month}"
+                       Visibility="{Binding ShowLabels, ElementName=Root, Converter={StaticResource BoolToVisibility}}" />
+            <ComboBox x:Name="MonthBox"
+                      DisplayMemberPath="Name"
+                      SelectionChanged="OnSelectionChanged"
+                      AutomationProperties.Name="{loc:Tr common.month}" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="2">
+            <TextBlock Style="{StaticResource Text.Caption}"
+                       Foreground="{DynamicResource Text.Secondary}"
+                       Margin="0,0,0,4"
+                       Text="{loc:Tr common.year}"
+                       Visibility="{Binding ShowLabels, ElementName=Root, Converter={StaticResource BoolToVisibility}}" />
+            <ComboBox x:Name="YearBox"
+                      SelectionChanged="OnSelectionChanged"
+                      AutomationProperties.Name="{loc:Tr common.year}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

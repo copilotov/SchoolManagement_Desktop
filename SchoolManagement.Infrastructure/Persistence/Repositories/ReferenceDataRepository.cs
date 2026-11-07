@@ -135,4 +135,15 @@ public sealed class ReferenceDataRepository : RepositoryBase, IReferenceDataRepo
                     .ConfigureAwait(false);
             },
             cancellationToken);
+
+    public Task<Result<string>> GetSchoolNameAsync(CancellationToken cancellationToken = default)
+        => RunAsync(
+            "ReferenceData.GetSchoolName",
+            async context => await context.Schools
+                .AsNoTracking()
+                .OrderBy(school => school.Id)
+                .Select(school => school.Name)
+                .FirstOrDefaultAsync(cancellationToken)
+                .ConfigureAwait(false) ?? string.Empty,
+            cancellationToken);
 }

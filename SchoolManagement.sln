@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchoolManagement.Desktop", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchoolManagement.Tests", "SchoolManagement.Tests\SchoolManagement.Tests.csproj", "{11422594-DBE8-4A31-9B69-2B71DD28ABFF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{2C163FB6-E672-4138-ACBF-5788EAAC55C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchoolManagement.LicenseTool", "tools\SchoolManagement.LicenseTool\SchoolManagement.LicenseTool.csproj", "{040A7EB7-2C2B-4013-8310-3CAA47811B41}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,11 +43,18 @@ Global
 		{11422594-DBE8-4A31-9B69-2B71DD28ABFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11422594-DBE8-4A31-9B69-2B71DD28ABFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11422594-DBE8-4A31-9B69-2B71DD28ABFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{040A7EB7-2C2B-4013-8310-3CAA47811B41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{040A7EB7-2C2B-4013-8310-3CAA47811B41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{040A7EB7-2C2B-4013-8310-3CAA47811B41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{040A7EB7-2C2B-4013-8310-3CAA47811B41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4DCF8757-E607-4B1E-B438-BA869C4762B7}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{040A7EB7-2C2B-4013-8310-3CAA47811B41} = {2C163FB6-E672-4138-ACBF-5788EAAC55C9}
 	EndGlobalSection
 EndGlobal

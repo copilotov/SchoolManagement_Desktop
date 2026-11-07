@@ -1,0 +1,47 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.PageHeader"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - page header: breadcrumb, title, description and actions.
+         Actions are mirrored automatically by FlowDirection. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Style="{StaticResource Text.Caption}"
+                   Foreground="{DynamicResource Text.Secondary}"
+                   Margin="{StaticResource Inset.None}"
+                   Text="{Binding Breadcrumb, ElementName=Root}"
+                   Visibility="{Binding Breadcrumb, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+
+        <Grid Grid.Row="1" Margin="0,4,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Style="{StaticResource Text.Title}"
+                           TextWrapping="Wrap"
+                           Text="{Binding Title, ElementName=Root}" />
+                <TextBlock Style="{StaticResource Text.Body}"
+                           Foreground="{DynamicResource Text.Secondary}"
+                           TextWrapping="Wrap"
+                           Margin="0,4,0,0"
+                           Text="{Binding Description, ElementName=Root}"
+                           Visibility="{Binding Description, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+            </StackPanel>
+
+            <ContentPresenter Grid.Column="1"
+                              Margin="16,0,0,0"
+                              VerticalAlignment="Center"
+                              Content="{Binding ActionsContent, ElementName=Root}" />
+        </Grid>
+    </Grid>
+</UserControl>

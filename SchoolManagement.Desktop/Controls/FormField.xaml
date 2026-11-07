@@ -1,0 +1,48 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.FormField"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - one labelled form field: label, required marker, the real
+         editor, a helper line and a translated error line. -->
+    <StackPanel>
+        <Grid Margin="0,0,0,4"
+              Visibility="{Binding Label, ElementName=Root, Converter={StaticResource StringToVisibility}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Style="{StaticResource FieldLabel}"
+                       Text="{Binding Label, ElementName=Root}" />
+
+            <TextBlock Grid.Column="1"
+                       Style="{StaticResource FieldLabel}"
+                       Foreground="{DynamicResource Danger}"
+                       Margin="4,0,0,0"
+                       Text="*"
+                       ToolTip="{loc:Tr common.required}"
+                       Visibility="{Binding IsRequired, ElementName=Root, Converter={StaticResource BoolToVisibility}}" />
+        </Grid>
+
+        <ContentPresenter Content="{Binding FieldContent, ElementName=Root}" />
+
+        <TextBlock Style="{StaticResource Text.Caption}"
+                   Foreground="{DynamicResource Text.Secondary}"
+                   Margin="0,4,0,0"
+                   TextWrapping="Wrap"
+                   Text="{Binding Description, ElementName=Root}"
+                   Visibility="{Binding Description, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+
+        <TextBlock Style="{StaticResource Text.BodySmall}"
+                   Foreground="{DynamicResource Danger}"
+                   Margin="0,4,0,0"
+                   TextWrapping="Wrap"
+                   Text="{Binding ErrorText, ElementName=Root}"
+                   Visibility="{Binding ErrorText, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+    </StackPanel>
+</UserControl>

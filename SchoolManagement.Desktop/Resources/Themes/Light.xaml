@@ -1,36 +1,16 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Light palette derived from the phone app, with the requested warm
-         background (#FAF8F5) and the same semantic colors. -->
-    <SolidColorBrush x:Key="Brush.Background" Color="#FAF8F5" />
-    <SolidColorBrush x:Key="Brush.Surface" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="Brush.SurfaceVariant" Color="#F2EEE8" />
-    <SolidColorBrush x:Key="Brush.Primary" Color="#1A73E8" />
-    <SolidColorBrush x:Key="Brush.OnPrimary" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="Brush.PrimaryContainer" Color="#D3E3FD" />
-    <SolidColorBrush x:Key="Brush.OnPrimaryContainer" Color="#041E49" />
-    <SolidColorBrush x:Key="Brush.TextPrimary" Color="#1F1F1F" />
-    <SolidColorBrush x:Key="Brush.TextSecondary" Color="#5F6368" />
-    <SolidColorBrush x:Key="Brush.Border" Color="#E6E0D8" />
-    <SolidColorBrush x:Key="Brush.NavRail" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="Brush.StatusBar" Color="#F2EEE8" />
-    <SolidColorBrush x:Key="Brush.Hover" Color="#E8F0FE" />
-    <SolidColorBrush x:Key="Brush.Selected" Color="#D3E3FD" />
+    <!-- =====================================================================
+         Phase D1 - Light theme shim.
+         ThemeService replaces the dictionary whose Source contains
+         "Resources/Themes/" so the switch stays a single remove/insert. The
+         actual palette lives in Resources/Design/Colors.Light.xaml, which is
+         also what the theme parity and contrast tests read.
+         ===================================================================== -->
 
-    <SolidColorBrush x:Key="Brush.Success" Color="#34A853" />
-    <SolidColorBrush x:Key="Brush.Warning" Color="#F29900" />
-    <SolidColorBrush x:Key="Brush.Info" Color="#1A73E8" />
-    <SolidColorBrush x:Key="Brush.Danger" Color="#D93025" />
-
-    <SolidColorBrush x:Key="Brush.Present" Color="#34A853" />
-    <SolidColorBrush x:Key="Brush.Late" Color="#F29900" />
-    <SolidColorBrush x:Key="Brush.Excused" Color="#1A73E8" />
-    <SolidColorBrush x:Key="Brush.Unexcused" Color="#D93025" />
-
-    <SolidColorBrush x:Key="Brush.Paid" Color="#34A853" />
-    <SolidColorBrush x:Key="Brush.PartiallyPaid" Color="#F29900" />
-    <SolidColorBrush x:Key="Brush.Unpaid" Color="#D93025" />
-    <SolidColorBrush x:Key="Brush.Exempted" Color="#1A73E8" />
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/SchoolManagement.Desktop;component/Resources/Design/Colors.Light.xaml" />
+    </ResourceDictionary.MergedDictionaries>
 
 </ResourceDictionary>

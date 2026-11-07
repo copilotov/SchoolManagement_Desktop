@@ -1,0 +1,46 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.ProgressStat"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:SchoolManagement.Desktop.Controls"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - a ring + value + label for attendance rate, paid ratio and
+         similar single-number metrics. -->
+    <Border Style="{StaticResource Component.Card.Compact}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0" Width="64" Height="64">
+                <controls:ProgressRing x:Name="Ring"
+                                       Width="64"
+                                       Height="64"
+                                       Thickness="6"
+                                       IsActive="True"
+                                       IsIndeterminate="False"
+                                       Foreground="{DynamicResource Accent}" />
+                <TextBlock x:Name="PercentText"
+                           Style="{StaticResource Text.Numeric}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Text="0%" />
+            </Grid>
+
+            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                <TextBlock Style="{StaticResource Component.StatLabel}"
+                           TextTrimming="CharacterEllipsis"
+                           Text="{Binding Title, ElementName=Root}" />
+                <TextBlock Style="{StaticResource Text.Body}"
+                           Foreground="{DynamicResource Text.Secondary}"
+                           Margin="0,2,0,0"
+                           TextTrimming="CharacterEllipsis"
+                           Text="{Binding DisplayText, ElementName=Root}"
+                           Visibility="{Binding DisplayText, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

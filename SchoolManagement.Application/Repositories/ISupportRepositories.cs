@@ -66,4 +66,7 @@ public interface IReferenceDataRepository
         int? academicLevelId,
         bool onlyActive,
         CancellationToken cancellationToken = default);
+
+    /// <summary>School display name used on the printable student card.</summary>
+    Task<Result<string>> GetSchoolNameAsync(CancellationToken cancellationToken = default);
 }

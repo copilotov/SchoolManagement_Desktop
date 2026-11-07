@@ -1,0 +1,16 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.Avatar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - avatar: coloured initials, or a photo when one is supplied.
+         The photo is a Border background, so the pill radius clips it. -->
+    <Border x:Name="Surface" ClipToBounds="True">
+        <TextBlock x:Name="InitialsText"
+                   FontWeight="SemiBold"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" />
+    </Border>
+</UserControl>

@@ -65,7 +65,7 @@ public class GenericRepository<TEntity> : RepositoryBase, IGenericRepository<TEn
             TranslationKeys.Errors.SaveError);
     }
 
-    public Task<Result<bool>> DeleteAsync(int id, CancellationToken cancellationToken = default)
+    public virtual Task<Result<bool>> DeleteAsync(int id, CancellationToken cancellationToken = default)
         => RunResultAsync(
             $"{typeof(TEntity).Name}.Delete",
             async context =>

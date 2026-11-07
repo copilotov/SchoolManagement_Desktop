@@ -1,0 +1,37 @@
+<UserControl x:Class="SchoolManagement.Desktop.Views.AcademicsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization"
+             xmlns:views="clr-namespace:SchoolManagement.Desktop.Views">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="{loc:Tr menu.academics}"
+                   Style="{StaticResource PageTitle}" />
+
+        <TabControl Grid.Row="1"
+                    Margin="0,16,0,0"
+                    SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}"
+                    SelectionChanged="OnTabSelectionChanged">
+            <TabItem Header="{loc:Tr levels.title}"
+                     AutomationProperties.Name="{loc:Tr levels.title}">
+                <views:AcademicLevelsTabView DataContext="{Binding Levels}" />
+            </TabItem>
+            <TabItem Header="{loc:Tr grades.title}"
+                     AutomationProperties.Name="{loc:Tr grades.title}">
+                <views:AcademicGradesTabView DataContext="{Binding Grades}" />
+            </TabItem>
+            <TabItem Header="{loc:Tr subjects.title}"
+                     AutomationProperties.Name="{loc:Tr subjects.title}">
+                <views:AcademicSubjectsTabView DataContext="{Binding Subjects}" />
+            </TabItem>
+            <TabItem Header="{loc:Tr teachers.title}"
+                     AutomationProperties.Name="{loc:Tr teachers.title}">
+                <views:AcademicTeachersTabView DataContext="{Binding Teachers}" />
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

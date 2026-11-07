@@ -11,7 +11,11 @@ public sealed record StudentListItem(
     string? Phone,
     string Status,
     string? GuardianName,
-    int? GuardianId);
+    int? GuardianId,
+    string? LevelName = null,
+    string? GradeName = null,
+    string? GroupNames = null,
+    double RegistrationFee = 0);
 
 public sealed record StudentDetails(
     int Id,
@@ -28,7 +32,9 @@ public sealed record StudentDetails(
     double RegistrationFee,
     int? GuardianId,
     string? GuardianName,
-    string? GuardianPhone);
+    string? GuardianPhone,
+    string? GuardianEmail = null,
+    string? GuardianRelationship = null);
 
 public sealed record StudentAbsenceSummary(
     int StudentId,
@@ -54,13 +60,49 @@ public sealed record GroupSummary(
     int MaxStudents,
     double MonthlyFee,
     bool IsActive,
-    int ActiveEnrollments)
+    int ActiveEnrollments,
+    int WeeklySlots = 0)
 {
     public bool IsFull => ActiveEnrollments >= MaxStudents;
 
     public bool IsOverCapacity => ActiveEnrollments > MaxStudents;
 
     public int RemainingSeats => Math.Max(0, MaxStudents - ActiveEnrollments);
+
+    public bool HasSchedule => WeeklySlots > 0;
+
+    /// <summary>Capacity badge text ("12/30"), never localized on its own.</summary>
+    public string CapacityText => $"{ActiveEnrollments}/{MaxStudents}";
+}
+
+/// <summary>
+/// One weekly slot joined with its group and teacher. The timetable and the
+/// schedule page both consume this projection, so neither screen runs a query
+/// per row.
+/// </summary>
+public sealed record ScheduleSlotItem(
+    int Id,
+    int GroupId,
+    string GroupName,
+    int? TeacherId,
+    string? TeacherName,
+    int DayOfWeek,
+    DateTime StartTime,
+    DateTime EndTime,
+    string? Location,
+    bool IsActive);
+
+/// <summary>Attendance counters used by the group file and the printable report.</summary>
+public sealed record GroupAttendanceStats(
+    int SessionCount,
+    int RecordCount,
+    int PresentCount,
+    int AbsentCount,
+    int LateCount)
+{
+    public double AttendanceRate => RecordCount == 0
+        ? 0
+        : (PresentCount + LateCount) * 100d / RecordCount;
 }
 
 public sealed record EnrollmentListItem(
@@ -88,7 +130,8 @@ public sealed record SessionListItem(
     double? Price,
     string? PaymentStatus,
     double PaidAmount,
-    double RemainingAmount);
+    double RemainingAmount,
+    string? CancelReason = null);
 
 public sealed record AttendanceListItem(
     int Id,
@@ -163,3 +206,84 @@ public sealed record NotificationListItem(
     DateTime CreatedAt);
 
 public sealed record LookupItem(int Id, string Name);
+
+// Phase 4: academic structure. Every list projection is shaped for one screen:
+// it carries the linked counts the screen shows, so the DataGrid never N+1
+// queries and no repository loads an entire table into memory.
+
+public sealed record AcademicLevelListItem(
+    int Id,
+    string Name,
+    int OrderIndex,
+    bool IsActive,
+    int GradesCount,
+    int GroupsCount);
+
+public sealed record GradeListItem(
+    int Id,
+    string Name,
+    int? AcademicLevelId,
+    string? AcademicLevelName,
+    int OrderIndex,
+    bool IsActive,
+    int SubjectsCount,
+    int GroupsCount);
+
+public sealed record SubjectListItem(
+    int Id,
+    string Name,
+    string? Code,
+    string? Description,
+    bool IsActive,
+    int GradesCount,
+    int GroupsCount);
+
+public sealed record TeacherListItem(
+    int Id,
+    string FullName,
+    string? Phone,
+    string? Email,
+    string? Address,
+    string? Specialization,
+    DateTime? HireDate,
+    bool IsActive,
+    int GroupsCount);
+
+public sealed record SubjectSelectionItem(int Id, string Name, string? Code, bool IsSelected);
+
+// Phase 7: attendance and homework. The roster joins the active enrollments of
+// the session's group with the attendance rows, so every student appears once
+// even before the first save.
+
+public sealed record AttendanceRosterItem(
+    int StudentId,
+    string StudentCode,
+    string StudentName,
+    string Status,
+    DateTime? CheckInTime,
+    string? Notes);
+
+public sealed record AttendanceReportRow(
+    int StudentId,
+    string StudentCode,
+    string StudentName,
+    int GroupId,
+    string GroupName,
+    int SessionCount,
+    int PresentCount,
+    int AbsentCount,
+    int LateCount)
+{
+    public int TotalCount => PresentCount + AbsentCount + LateCount;
+
+    public double AttendanceRate => TotalCount == 0
+        ? 0
+        : (PresentCount + LateCount) * 100d / TotalCount;
+}
+
+/// <summary>Guardian phone used by the session SMS suggestion.</summary>
+public sealed record GuardianContact(
+    int StudentId,
+    string StudentName,
+    string? GuardianName,
+    string? Phone);

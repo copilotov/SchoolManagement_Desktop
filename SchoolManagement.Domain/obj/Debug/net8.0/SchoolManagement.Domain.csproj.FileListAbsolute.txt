@@ -10,3 +10,4 @@ C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\obj\Debug\
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\obj\Debug\net8.0\SchoolManagement.Domain.pdb
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\obj\Debug\net8.0\ref\SchoolManagement.Domain.dll
 C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\obj\Debug\net8.0\SchoolManagement.Domain.sourcelink.json
+C:\Users\RAMLINA\Documents\Projet par défaut\SchoolManagement.Domain\obj\Debug\net8.0\SchoolMa.B83249D8.Up2Date

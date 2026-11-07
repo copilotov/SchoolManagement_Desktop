@@ -1,0 +1,134 @@
+<UserControl x:Class="SchoolManagement.Desktop.Views.LicenseBannerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization"
+             xmlns:vm="clr-namespace:SchoolManagement.Desktop.ViewModels"
+             xmlns:behaviors="clr-namespace:SchoolManagement.Desktop.Behaviors"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:LicenseViewModel, IsDesignTimeCreatable=False}"
+             Visibility="{Binding BannerVisibility}">
+
+    <!-- =====================================================================
+         Phase D2 - license banner.
+         One card per license state, laid out above the page content so it can
+         never cover a table or a form. It is dismissible for every state except
+         read-only, where hiding the explanation would leave the user stuck.
+         ===================================================================== -->
+
+    <Border Margin="16,12,16,0"
+            Padding="14,10"
+            BorderThickness="1"
+            CornerRadius="{StaticResource Radius.Card}"
+            behaviors:MotionBehavior.Play="SlideUp">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource Info.Container}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Info}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Severity}" Value="Warning">
+                        <Setter Property="Background" Value="{DynamicResource Warning.Container}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource Warning}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Severity}" Value="Danger">
+                        <Setter Property="Background" Value="{DynamicResource Danger.Container}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource Danger}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Severity glyph -->
+            <TextBlock FontFamily="{StaticResource Font.Family.Icons}"
+                       FontSize="18"
+                       VerticalAlignment="Top"
+                       Margin="0,2,0,0">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Text" Value="{StaticResource Icon.Info}" />
+                        <Setter Property="Foreground" Value="{DynamicResource Info.OnContainer}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Severity}" Value="Warning">
+                                <Setter Property="Text" Value="{StaticResource Icon.Warning}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Warning.OnContainer}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Severity}" Value="Danger">
+                                <Setter Property="Text" Value="{StaticResource Icon.Warning}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Danger.OnContainer}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <StackPanel Grid.Column="1" Margin="12,0,12,0">
+                <TextBlock Text="{Binding BannerTitle}"
+                           FontWeight="SemiBold"
+                           TextWrapping="Wrap"
+                           Visibility="{Binding BannerTitleVisibility}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource Text.BodyStrong}">
+                            <Setter Property="Foreground" Value="{DynamicResource Info.OnContainer}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Severity}" Value="Warning">
+                                    <Setter Property="Foreground" Value="{DynamicResource Warning.OnContainer}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Severity}" Value="Danger">
+                                    <Setter Property="Foreground" Value="{DynamicResource Danger.OnContainer}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <TextBlock Text="{Binding BannerMessage}"
+                           TextWrapping="Wrap"
+                           Margin="0,2,0,0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource Text.BodySmall}">
+                            <Setter Property="Foreground" Value="{DynamicResource Info.OnContainer}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Severity}" Value="Warning">
+                                    <Setter Property="Foreground" Value="{DynamicResource Warning.OnContainer}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Severity}" Value="Danger">
+                                    <Setter Property="Foreground" Value="{DynamicResource Danger.OnContainer}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                <Button Content="{Binding RenewText}"
+                        Command="{Binding RenewCommand}"
+                        Style="{StaticResource Button.Secondary}"
+                        Height="32"
+                        Margin="0,0,8,0" />
+
+                <Button Command="{Binding DismissCommand}"
+                        Style="{StaticResource Button.Icon}"
+                        Width="32"
+                        Height="32"
+                        Visibility="{Binding DismissVisibility}"
+                        ToolTip="{Binding DismissText}"
+                        AutomationProperties.Name="{Binding DismissText}">
+                    <TextBlock Text="{StaticResource Icon.Close}"
+                               FontFamily="{StaticResource Font.Family.Icons}"
+                               FontSize="12" />
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

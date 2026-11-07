@@ -1,8 +1,14 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
+using SchoolManagement.Application.Licensing;
+using SchoolManagement.Application.Groups;
 using SchoolManagement.Application.Localization;
+using SchoolManagement.Application.Repositories;
 using SchoolManagement.Application.Settings;
+using SchoolManagement.Application.Students;
+using SchoolManagement.Application.Time;
+using SchoolManagement.Application.UseCases;
 using SchoolManagement.Desktop.Services;
 using SchoolManagement.Desktop.ViewModels;
 
@@ -14,6 +20,7 @@ public sealed class NavigationServiceTests
     [InlineData(ShellTab.Dashboard, typeof(DashboardViewModel))]
     [InlineData(ShellTab.Students, typeof(StudentsViewModel))]
     [InlineData(ShellTab.Groups, typeof(GroupsViewModel))]
+    [InlineData(ShellTab.Academics, typeof(AcademicsViewModel))]
     [InlineData(ShellTab.Finance, typeof(FinanceViewModel))]
     [InlineData(ShellTab.Settings, typeof(SettingsViewModel))]
     public void NavigateToTab_resolves_the_expected_view_model(ShellTab tab, Type expectedType)
@@ -82,10 +89,102 @@ public sealed class NavigationServiceTests
         services.AddSingleton(Substitute.For<IThemeService>());
         services.AddSingleton(Substitute.For<IAppSettingsStore>());
 
+        services.AddSingleton(Substitute.For<ILicenseService>());
+        services.AddSingleton(Substitute.For<IActivationDialogService>());
+        services.AddSingleton(Substitute.For<IUserDialogService>());
+        services.AddSingleton(Substitute.For<ILicenseGuard>());
+        services.AddSingleton<LicenseViewModel>();
+
+        services.AddSingleton(Substitute.For<IAcademicLevelRepository>());
+        services.AddSingleton(Substitute.For<IGradeRepository>());
+        services.AddSingleton(Substitute.For<ISubjectRepository>());
+        services.AddSingleton(Substitute.For<ITeacherRepository>());
+
+        services.AddSingleton(Substitute.For<IStudentRepository>());
+        services.AddSingleton(Substitute.For<IGroupRepository>());
+        services.AddSingleton(Substitute.For<IEnrollmentRepository>());
+        services.AddSingleton(Substitute.For<IPaymentRepository>());
+        services.AddSingleton(Substitute.For<IAttendanceRepository>());
+        services.AddSingleton(Substitute.For<IReferenceDataRepository>());
+        services.AddSingleton(Substitute.For<IScheduleTemplateRepository>());
+        services.AddSingleton(Substitute.For<ISessionRepository>());
+        services.AddSingleton(Substitute.For<IGroupReportService>());
+        services.AddSingleton(Substitute.For<ITrustedClock>());
+        services.AddSingleton(Substitute.For<IStudentFileGateway>());
+        services.AddSingleton(Substitute.For<IStudentCardService>());
+        services.AddSingleton(Substitute.For<IFileDialogService>());
+        services.AddSingleton(Substitute.For<IPdfPrintService>());
+
+        services.AddTransient<GetAcademicLevelsUseCase>();
+        services.AddTransient<GetGradesUseCase>();
+        services.AddTransient<GetSubjectsUseCase>();
+        services.AddTransient<GetTeachersUseCase>();
+        services.AddTransient<GetGradeSubjectsUseCase>();
+        services.AddTransient<AddAcademicLevelUseCase>();
+        services.AddTransient<UpdateAcademicLevelUseCase>();
+        services.AddTransient<DeleteAcademicLevelUseCase>();
+        services.AddTransient<AddGradeUseCase>();
+        services.AddTransient<UpdateGradeUseCase>();
+        services.AddTransient<DeleteGradeUseCase>();
+        services.AddTransient<SetGradeSubjectsUseCase>();
+        services.AddTransient<AddSubjectUseCase>();
+        services.AddTransient<UpdateSubjectUseCase>();
+        services.AddTransient<DeleteSubjectUseCase>();
+        services.AddTransient<AddTeacherUseCase>();
+        services.AddTransient<UpdateTeacherUseCase>();
+        services.AddTransient<DeleteTeacherUseCase>();
+
+        services.AddTransient<GetStudentLookupsUseCase>();
+        services.AddTransient<GetStudentsUseCase>();
+        services.AddTransient<GetStudentDetailsUseCase>();
+        services.AddTransient<GetStudentActivityUseCase>();
+        services.AddTransient<GetStudentCardDataUseCase>();
+        services.AddTransient<SaveStudentUseCase>();
+        services.AddTransient<DeleteStudentUseCase>();
+        services.AddTransient<ImportStudentsUseCase>();
+        services.AddTransient<ExportStudentsUseCase>();
+        services.AddTransient<RenderStudentQrUseCase>();
+        services.AddTransient<RenderStudentCardPreviewUseCase>();
+        services.AddTransient<BuildStudentCardPdfUseCase>();
+        services.AddTransient<BuildStudentsCardsPdfUseCase>();
+        services.AddTransient<RenderStudentsQrUseCase>();
+        services.AddTransient<BuildStudentsQrSheetPdfUseCase>();
+
+        services.AddTransient<GetGroupLookupsUseCase>();
+        services.AddTransient<GetGroupSubjectsUseCase>();
+        services.AddTransient<GetGroupsUseCase>();
+        services.AddTransient<GetGroupSummaryUseCase>();
+        services.AddTransient<GetGroupDetailsUseCase>();
+        services.AddTransient<GetGroupScheduleUseCase>();
+        services.AddTransient<GetScheduleConflictsUseCase>();
+        services.AddTransient<GetTimetableUseCase>();
+        services.AddTransient<GetEnrollmentBoardUseCase>();
+        services.AddTransient<BuildGroupFullReportUseCase>();
+        services.AddTransient<SaveGroupUseCase>();
+        services.AddTransient<RemoveGroupUseCase>();
+        services.AddTransient<EnrollStudentInGroupUseCase>();
+        services.AddTransient<WithdrawEnrollmentUseCase>();
+        services.AddTransient<SaveScheduleSlotUseCase>();
+        services.AddTransient<DeleteScheduleSlotUseCase>();
+        services.AddTransient<GenerateSessionsUseCase>();
+
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddTransient<DashboardViewModel>();
         services.AddTransient<StudentsViewModel>();
+        services.AddTransient<StudentDetailsViewModel>();
+        services.AddTransient<StudentCardViewModel>();
+        services.AddTransient<StudentsQrPrintViewModel>();
         services.AddTransient<GroupsViewModel>();
+        services.AddTransient<GroupDetailsViewModel>();
+        services.AddTransient<GroupScheduleViewModel>();
+        services.AddTransient<EnrollmentViewModel>();
+        services.AddTransient<TimetableViewModel>();
+        services.AddTransient<GroupFullReportViewModel>();
+        services.AddTransient<AcademicLevelsViewModel>();
+        services.AddTransient<AcademicGradesViewModel>();
+        services.AddTransient<AcademicSubjectsViewModel>();
+        services.AddTransient<AcademicTeachersViewModel>();
+        services.AddTransient<AcademicsViewModel>();
         services.AddTransient<FinanceViewModel>();
         services.AddTransient<SettingsViewModel>();
 

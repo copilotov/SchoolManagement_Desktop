@@ -1,0 +1,122 @@
+<UserControl x:Class="SchoolManagement.Desktop.Views.TimetablePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization">
+    <DockPanel Margin="24">
+        <StackPanel DockPanel.Dock="Top">
+            <Grid>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="{loc:Tr common.back}"
+                            Command="{Binding BackCommand}"
+                            Style="{StaticResource LinkButton}"
+                            VerticalAlignment="Center"
+                            Margin="0,0,12,0" />
+                    <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitle}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center">
+                    <ComboBox Width="180"
+                              ToolTip="{loc:Tr timetable.group}"
+                              ItemsSource="{Binding GroupOptions}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" />
+                    <ComboBox Width="180"
+                              Margin="8,0,0,0"
+                              ToolTip="{loc:Tr timetable.teacher}"
+                              ItemsSource="{Binding TeacherOptions}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedTeacher, Mode=TwoWay}" />
+                    <Button Content="{loc:Tr common.refresh}"
+                            Command="{Binding ReloadCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="8,0,0,0" />
+                </StackPanel>
+            </Grid>
+
+            <Border Background="{DynamicResource Brush.SurfaceVariant}"
+                    BorderBrush="{DynamicResource Brush.Danger}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="12,8"
+                    Margin="0,12,0,0"
+                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="{DynamicResource Brush.Danger}"
+                           TextWrapping="Wrap" />
+            </Border>
+        </StackPanel>
+
+        <Grid Margin="0,14,0,0">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Cells}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="{Binding ColumnCount}"
+                                         Rows="{Binding RowCount}" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="{DynamicResource Brush.Border}"
+                                    BorderThickness="1"
+                                    MinHeight="58">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsHeader}" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource Brush.SurfaceVariant}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsDayLabel}" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource Brush.SurfaceVariant}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding HasSlot}" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource Brush.PrimaryContainer}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock Text="{Binding Text}"
+                                           TextWrapping="Wrap"
+                                           FontSize="11"
+                                           Margin="5"
+                                           VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsHeader}" Value="True">
+                                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsDayLabel}" Value="True">
+                                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <TextBlock Text="{loc:Tr timetable.empty}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource PageSubtitle}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsEmpty}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Grid>
+    </DockPanel>
+</UserControl>

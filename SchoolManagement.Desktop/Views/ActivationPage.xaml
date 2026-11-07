@@ -1,0 +1,103 @@
+<UserControl x:Class="SchoolManagement.Desktop.Views.ActivationPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32" MaxWidth="760" HorizontalAlignment="Center">
+            <TextBlock Text="{loc:Tr license.title}"
+                       Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{loc:Tr license.subtitle}"
+                       Style="{StaticResource PageSubtitle}"
+                       Margin="0,6,0,0" />
+
+            <!-- Fingerprint: full 64-hex value plus the short code read over the phone. -->
+            <Border Style="{StaticResource Card}" Margin="0,20,0,0">
+                <StackPanel>
+                    <TextBlock Text="{loc:Tr license.deviceFingerprint}"
+                               Style="{StaticResource SectionHeader}" />
+                    <TextBlock Text="{loc:Tr license.fingerprintHint}"
+                               Style="{StaticResource PageSubtitle}"
+                               TextWrapping="Wrap"
+                               Margin="0,6,0,0" />
+
+                    <TextBox Text="{Binding FingerprintHash, Mode=OneWay}"
+                             IsReadOnly="True"
+                             Margin="0,12,0,0"
+                             FontFamily="Consolas"
+                             TextWrapping="Wrap" />
+
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding ShortCode}"
+                                   FontFamily="Consolas"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Content="{loc:Tr license.copyFingerprint}"
+                                    Command="{Binding CopyFingerprintCommand}"
+                                    Margin="0,0,8,0" />
+                            <Button Content="{loc:Tr license.pasteFromClipboard}"
+                                    Command="{Binding PasteCommand}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Style="{StaticResource Card}"
+                            Background="{DynamicResource Brush.SurfaceVariant}"
+                            BorderBrush="{DynamicResource Brush.Warning}"
+                            Visibility="{Binding WeakFingerprintVisibility}"
+                            Margin="0,12,0,0">
+                        <TextBlock Text="{loc:Tr license.fingerprintWeakWarning}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource Brush.TextPrimary}" />
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- License key. -->
+            <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="{loc:Tr license.licenseKey}"
+                               Style="{StaticResource SectionHeader}" />
+                    <TextBox Text="{Binding LicenseText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,12,0,0"
+                             MinHeight="110"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             FontFamily="Consolas" />
+                    <TextBlock Text="{loc:Tr license.licenseKeyHint}"
+                               Style="{StaticResource PageSubtitle}"
+                               TextWrapping="Wrap"
+                               Margin="0,6,0,0" />
+
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               Foreground="{DynamicResource Brush.Danger}"
+                               TextWrapping="Wrap"
+                               Visibility="{Binding ErrorVisibility}"
+                               Margin="0,12,0,0" />
+                    <TextBlock Text="{Binding NoticeMessage}"
+                               Foreground="{DynamicResource Brush.Success}"
+                               TextWrapping="Wrap"
+                               Visibility="{Binding NoticeVisibility}"
+                               Margin="0,12,0,0" />
+
+                    <Button Content="{Binding ActivateButtonText}"
+                            Command="{Binding ActivateCommand}"
+                            IsEnabled="{Binding IsNotBusy}"
+                            HorizontalAlignment="Left"
+                            MinWidth="160"
+                            Margin="0,16,0,0" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="{loc:Tr license.contactProvider}"
+                       Style="{StaticResource PageSubtitle}"
+                       TextWrapping="Wrap"
+                       Margin="0,18,0,0" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

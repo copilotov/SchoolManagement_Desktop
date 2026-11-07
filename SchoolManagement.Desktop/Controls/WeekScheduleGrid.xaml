@@ -1,0 +1,88 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.WeekScheduleGrid"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - weekly days x hours grid. Day 0 is Saturday and day 6 is
+         Friday, matching WeekDayCalculator. FlowDirection mirrors the columns,
+         so Arabic puts Saturday on the right with no code. -->
+    <Border Style="{StaticResource Component.Card}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Style="{StaticResource Component.SectionTitle}"
+                               TextTrimming="CharacterEllipsis"
+                               Text="{Binding Title, ElementName=Root}"
+                               Visibility="{Binding Title, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+                    <TextBlock Style="{StaticResource Component.Hint}"
+                               Margin="0,0,0,8"
+                               TextWrapping="Wrap"
+                               Text="{Binding Description, ElementName=Root}"
+                               Visibility="{Binding Description, ElementName=Root, Converter={StaticResource StringToVisibility}}" />
+                </StackPanel>
+
+                <ContentPresenter Grid.Column="1"
+                                  VerticalAlignment="Top"
+                                  Content="{Binding ActionsContent, ElementName=Root}" />
+            </Grid>
+
+            <StackPanel Grid.Row="1"
+                        Orientation="Horizontal"
+                        Margin="0,0,0,10">
+                <Ellipse Width="8"
+                         Height="8"
+                         VerticalAlignment="Center"
+                         Fill="{DynamicResource Accent}" />
+                <TextBlock Style="{StaticResource Text.Caption}"
+                           Foreground="{DynamicResource Text.Secondary}"
+                           Margin="6,0,16,0"
+                           VerticalAlignment="Center"
+                           Text="{loc:Tr components.scheduleLegend}" />
+
+                <Ellipse Width="8"
+                         Height="8"
+                         VerticalAlignment="Center"
+                         Fill="{DynamicResource Danger}"
+                         Visibility="{Binding HasConflicts, ElementName=Root, Converter={StaticResource BoolToVisibility}}" />
+                <TextBlock Style="{StaticResource Text.Caption}"
+                           Foreground="{DynamicResource Danger}"
+                           Margin="6,0,0,0"
+                           VerticalAlignment="Center"
+                           Text="{loc:Tr components.conflict}"
+                           Visibility="{Binding HasConflicts, ElementName=Root, Converter={StaticResource BoolToVisibility}}" />
+            </StackPanel>
+
+            <Grid Grid.Row="2">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Auto"
+                              CanContentScroll="False">
+                    <Grid x:Name="GridHost" MinWidth="560" />
+                </ScrollViewer>
+
+                <TextBlock Style="{StaticResource Text.Body}"
+                           Foreground="{DynamicResource Text.Secondary}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Margin="16"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           Text="{Binding EmptyText, ElementName=Root}"
+                           Visibility="{Binding IsEmpty, ElementName=Root, Converter={StaticResource BoolToVisibility}}" />
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

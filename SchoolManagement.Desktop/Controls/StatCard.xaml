@@ -1,0 +1,89 @@
+<UserControl x:Class="SchoolManagement.Desktop.Controls.StatCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:SchoolManagement.Desktop.Controls"
+             x:Name="Root"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+
+    <!-- Phase D3 - stat card: title, big value, icon, trend arrow and sparkline. -->
+    <Border Style="{StaticResource Component.Card}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0"
+                        Width="36"
+                        Height="36"
+                        CornerRadius="{StaticResource Radius.Element}"
+                        Background="{DynamicResource Accent.Container}">
+                    <TextBlock x:Name="IconBlock"
+                               Style="{StaticResource Icon.Glyph}"
+                               FontSize="18"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource Accent.OnContainer}"
+                               Text="{Binding Icon, ElementName=Root}" />
+                </Border>
+
+                <TextBlock Grid.Column="1"
+                           Style="{StaticResource Component.StatLabel}"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           Text="{Binding Title, ElementName=Root}" />
+            </Grid>
+
+            <TextBlock Grid.Row="1"
+                       Style="{StaticResource Component.StatValue}"
+                       Text="{Binding Value, ElementName=Root}" />
+
+            <Grid Grid.Row="2" Margin="0,10,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <TextBlock x:Name="TrendUpIcon"
+                               Style="{StaticResource Icon.Glyph}"
+                               FontSize="12"
+                               Foreground="{DynamicResource Success}"
+                               Text="{StaticResource Icon.TrendUp}" />
+                    <TextBlock x:Name="TrendDownIcon"
+                               Style="{StaticResource Icon.Glyph}"
+                               FontSize="12"
+                               Foreground="{DynamicResource Danger}"
+                               Text="{StaticResource Icon.TrendDown}" />
+                    <TextBlock x:Name="TrendFlatIcon"
+                               Style="{StaticResource Icon.Glyph}"
+                               FontSize="12"
+                               Foreground="{DynamicResource Text.Secondary}"
+                               Text="{StaticResource Icon.TrendFlat}" />
+
+                    <TextBlock x:Name="TrendLabel"
+                               Style="{StaticResource Component.StatTrend}"
+                               Text="{Binding TrendText, ElementName=Root}" />
+                </StackPanel>
+
+                <controls:Sparkline Grid.Column="1"
+                                    Height="32"
+                                    Margin="16,0,0,0"
+                                    VerticalAlignment="Bottom"
+                                    Values="{Binding SparklineValues, ElementName=Root}"
+                                    Stroke="{DynamicResource Accent}"
+                                    Fill="{DynamicResource Accent.Container}"
+                                    StrokeThickness="2" />
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

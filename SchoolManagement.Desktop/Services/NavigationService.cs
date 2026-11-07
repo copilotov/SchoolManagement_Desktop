@@ -3,14 +3,21 @@ using SchoolManagement.Desktop.ViewModels;
 
 namespace SchoolManagement.Desktop.Services;
 
-/// <summary>Stable identifiers for the five shell destinations.</summary>
+/// <summary>Stable identifiers for the shell destinations.</summary>
 public enum ShellTab
 {
     Dashboard = 0,
     Students = 1,
     Groups = 2,
-    Finance = 3,
-    Settings = 4,
+    Academics = 3,
+    Finance = 4,
+    Settings = 5,
+    Attendance = 6,
+
+    // Phase D2 - appended so the Phase 1-7 tab numbers never move.
+    Homework = 7,
+    Notifications = 8,
+    Messages = 9,
 }
 
 public sealed class NavigationChangedEventArgs : EventArgs
@@ -102,13 +109,25 @@ public sealed class NavigationService : INavigationService
         return resolved;
     }
 
+    /// <summary>
+    /// The destination ViewModel type of a tab. Exposed so the shell can tell a
+    /// top-level page from a sub-page (details, card, report) without duplicating
+    /// the mapping.
+    /// </summary>
+    public static Type ViewModelTypeFor(ShellTab tab) => GetViewModelType(tab);
+
     private static Type GetViewModelType(ShellTab tab) => tab switch
     {
         ShellTab.Dashboard => typeof(DashboardViewModel),
         ShellTab.Students => typeof(StudentsViewModel),
         ShellTab.Groups => typeof(GroupsViewModel),
+        ShellTab.Academics => typeof(AcademicsViewModel),
         ShellTab.Finance => typeof(FinanceViewModel),
         ShellTab.Settings => typeof(SettingsViewModel),
+        ShellTab.Attendance => typeof(AttendanceViewModel),
+        ShellTab.Homework => typeof(HomeworkViewModel),
+        ShellTab.Notifications => typeof(NotificationsViewModel),
+        ShellTab.Messages => typeof(MessagesViewModel),
         _ => throw new ArgumentOutOfRangeException(nameof(tab), tab, "Unknown shell tab."),
     };
 }

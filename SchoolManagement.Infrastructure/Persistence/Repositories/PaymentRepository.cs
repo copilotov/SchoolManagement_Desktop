@@ -83,6 +83,7 @@ public sealed class PaymentRepository : GenericRepository<Payment>, IPaymentRepo
 
     public Task<Result<IReadOnlyList<MonthlyDue>>> GetMonthlyDuesAsync(
         string monthYear,
+        int? groupId = null,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(monthYear))
@@ -98,13 +99,19 @@ public sealed class PaymentRepository : GenericRepository<Payment>, IPaymentRepo
             "Payments.GetMonthlyDues",
             async context =>
             {
+                var enrollmentQuery = context.Enrollments.AsNoTracking()
+                    .Where(enrollment => enrollment.Status == EnrollmentStatuses.Active);
+                if (groupId is { } groupFilter)
+                {
+                    enrollmentQuery = enrollmentQuery.Where(enrollment => enrollment.GroupId == groupFilter);
+                }
+
                 var enrollments = await (
-                        from enrollment in context.Enrollments.AsNoTracking()
+                        from enrollment in enrollmentQuery
                         join student in context.Students.AsNoTracking()
                             on enrollment.StudentId equals student.Id
                         join groupEntity in context.Groups.AsNoTracking()
                             on enrollment.GroupId equals groupEntity.Id
-                        where enrollment.Status == EnrollmentStatuses.Active
                         orderby student.LastName, student.FirstName, groupEntity.Name
                         select new
                         {
@@ -203,7 +210,7 @@ public sealed class PaymentRepository : GenericRepository<Payment>, IPaymentRepo
         string monthYear,
         CancellationToken cancellationToken = default)
     {
-        var all = await GetMonthlyDuesAsync(monthYear, cancellationToken).ConfigureAwait(false);
+        var all = await GetMonthlyDuesAsync(monthYear, null, cancellationToken).ConfigureAwait(false);
 
         if (all.IsFailure)
         {

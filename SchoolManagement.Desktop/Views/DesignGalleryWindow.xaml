@@ -1,0 +1,1345 @@
+<Window x:Class="SchoolManagement.Desktop.Views.DesignGalleryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:behaviors="clr-namespace:SchoolManagement.Desktop.Behaviors"
+        xmlns:controls="clr-namespace:SchoolManagement.Desktop.Controls"
+        xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization"
+        xmlns:vm="clr-namespace:SchoolManagement.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:DesignGalleryViewModel, IsDesignTimeCreatable=False}"
+        Title="{loc:Tr design.title}"
+        Width="1240"
+        Height="860"
+        MinWidth="1000"
+        MinHeight="650"
+        WindowStartupLocation="CenterScreen"
+        FlowDirection="{Binding FlowDirection}">
+
+    <Window.Resources>
+
+        <!-- Section card -->
+        <Style x:Key="Design.Section" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Surface.Card}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.Subtle}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="{StaticResource Radius.Card}" />
+            <Setter Property="Padding" Value="{StaticResource Inset.Card}" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+        </Style>
+
+        <Style x:Key="Design.SectionTitle" TargetType="TextBlock" BasedOn="{StaticResource Text.Subtitle}">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+
+        <Style x:Key="Design.Hint" TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+
+        <!-- Palette swatch -->
+        <Style x:Key="Design.Swatch" TargetType="Border">
+            <Setter Property="Height" Value="44" />
+            <Setter Property="CornerRadius" Value="{StaticResource Radius.Element}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.Strong}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+        </Style>
+
+        <Style x:Key="Design.SwatchLabel" TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
+            <Setter Property="Margin" Value="0,4,0,0" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="{StaticResource Font.Size.Micro}" />
+        </Style>
+
+        <Style x:Key="Design.TokenLabel" TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
+            <Setter Property="Margin" Value="12,0,0,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="Design.ElevationBox" TargetType="Border">
+            <Setter Property="Width" Value="140" />
+            <Setter Property="Height" Value="72" />
+            <Setter Property="Margin" Value="0,0,20,0" />
+            <Setter Property="Background" Value="{DynamicResource Surface.Card}" />
+            <Setter Property="CornerRadius" Value="{StaticResource Radius.Card}" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+        </Style>
+
+        <Style x:Key="Design.RadiusBox" TargetType="Border">
+            <Setter Property="Width" Value="96" />
+            <Setter Property="Height" Value="56" />
+            <Setter Property="Margin" Value="0,0,16,0" />
+            <Setter Property="Background" Value="{DynamicResource Accent.Container}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+        </Style>
+
+        <!-- Phase D3 - status cell for the DataTable sample. -->
+        <DataTemplate x:Key="Gallery.StatusCell">
+            <controls:StatusBadge HorizontalAlignment="Left"
+                                 ShowDot="True"
+                                 Text="{Binding Status}"
+                                 Tone="{Binding Tone}" />
+        </DataTemplate>
+
+        <!-- Phase D3 - master-detail content for the DataTable sample. -->
+        <DataTemplate x:Key="Gallery.Detail">
+            <StackPanel>
+                <TextBlock Style="{StaticResource Component.SectionTitle}"
+                           Text="{loc:Tr design.sampleDetailTitle}" />
+                <TextBlock Style="{StaticResource Text.Body}"
+                           Margin="0,8,0,0"
+                           TextTrimming="CharacterEllipsis"
+                           Text="{Binding Name}" />
+                <Border Style="{StaticResource Divider}" Margin="0,12" />
+                <TextBlock Style="{StaticResource Text.Caption}"
+                           Foreground="{DynamicResource Text.Secondary}"
+                           TextWrapping="Wrap"
+                           Text="{loc:Tr design.sampleDetailBody}" />
+                <controls:StatusBadge Margin="0,12,0,0"
+                                     HorizontalAlignment="Left"
+                                     ShowDot="True"
+                                     Text="{Binding Status}"
+                                     Tone="{Binding Tone}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- Phase D3 - fixed host so the QR card proves it scales inside a box
+             smaller than its 320x420 design without overflowing. -->
+        <Style x:Key="Design.QrHost" TargetType="Border">
+            <Setter Property="Width" Value="300" />
+            <Setter Property="Height" Value="400" />
+            <Setter Property="Background" Value="{DynamicResource Surface.Alt}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.Subtle}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="{StaticResource Radius.Card}" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+        </Style>
+
+        <!-- Phase D3 - sample host for a state or indicator block. -->
+        <Style x:Key="Design.StateHost" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Surface.Alt}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.Subtle}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="{StaticResource Radius.Card}" />
+            <Setter Property="Padding" Value="{StaticResource Inset.Card.Compact}" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+        </Style>
+
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource Surface.Card}"
+                BorderBrush="{DynamicResource Border.Subtle}"
+                BorderThickness="0,0,0,1"
+                Padding="24,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Style="{StaticResource Text.Title}" Text="{loc:Tr design.title}" />
+                    <TextBlock Style="{StaticResource Text.Caption}" Text="{loc:Tr design.subtitle}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <CheckBox Style="{StaticResource ToggleSwitch}"
+                              Margin="0,0,20,0"
+                              Content="{loc:Tr design.darkMode}"
+                              IsChecked="{Binding IsDark, Mode=TwoWay}" />
+                    <CheckBox Style="{StaticResource ToggleSwitch}"
+                              Margin="0,0,20,0"
+                              Content="{loc:Tr design.rightToLeft}"
+                              IsChecked="{Binding IsRightToLeft, Mode=TwoWay}" />
+                    <Button Style="{StaticResource Button.Secondary}"
+                            Content="{loc:Tr common.close}"
+                            Command="{Binding CloseCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Body -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="24">
+            <StackPanel>
+
+                <!-- Palette -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.palette}" />
+                        <TextBlock Style="{StaticResource Design.Hint}" Text="{loc:Tr design.paletteHint}" />
+
+                        <WrapPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Surface.Base">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Surface.Base}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Surface.Card">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Surface.Card}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Surface.Alt">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Surface.Alt}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Surface.Sunken">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Surface.Sunken}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Surface.Hover">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Surface.Hover}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Surface.Selected">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Surface.Selected}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Surface.RowAlt">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Surface.RowAlt}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Border.Subtle">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Border.Subtle}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Border.Strong">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Border.Strong}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Border.Focus">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Border.Focus}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Text.Primary">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Text.Primary}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Text.Secondary">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Text.Secondary}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Text.Disabled">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Text.Disabled}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Accent">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Accent}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Accent.Hover">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Accent.Hover}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Accent.Pressed">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Accent.Pressed}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Accent.Container">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Accent.Container}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Success">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Success}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Success.Container">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Success.Container}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Warning">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Warning}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Warning.Container">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Warning.Container}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Danger">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Danger}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Danger.Container">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Danger.Container}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Info">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Info}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Info.Container">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Info.Container}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Attendance.Present">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Attendance.Present}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Attendance.Absent">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Attendance.Absent}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Attendance.Late">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Attendance.Late}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Attendance.Excused">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Attendance.Excused}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Finance.Paid">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Finance.Paid}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Finance.Partial">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Finance.Partial}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Finance.Overdue">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Finance.Overdue}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Width="120" Margin="0,0,10,10" Tag="Finance.Exempt">
+                                <Border Style="{StaticResource Design.Swatch}" Background="{DynamicResource Finance.Exempt}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}"
+                                           ToolTip="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Typography -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.typography}" />
+                        <TextBlock Style="{StaticResource Text.Display}" Text="{loc:Tr design.sampleTitle}" />
+                        <TextBlock Style="{StaticResource Text.Title}" Text="{loc:Tr design.sampleTitle}" />
+                        <TextBlock Style="{StaticResource Text.Subtitle}" Text="{loc:Tr design.sampleSubtitle}" />
+                        <TextBlock Style="{StaticResource Text.Body}" Margin="0,4" Text="{loc:Tr design.sampleBody}" />
+                        <TextBlock Style="{StaticResource Text.Caption}" Text="{loc:Tr design.sampleCaption}" />
+                        <TextBlock Style="{StaticResource Text.Numeric}" Margin="0,8,0,0" Text="{loc:Tr design.sampleNumeric}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Spacing -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.spacing}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6" Tag="Space.1">
+                            <Border Width="{StaticResource Space.1}" Height="16" Background="{DynamicResource Accent}" CornerRadius="{StaticResource Radius.Small}" />
+                            <TextBlock Style="{StaticResource Design.TokenLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6" Tag="Space.2">
+                            <Border Width="{StaticResource Space.2}" Height="16" Background="{DynamicResource Accent}" CornerRadius="{StaticResource Radius.Small}" />
+                            <TextBlock Style="{StaticResource Design.TokenLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6" Tag="Space.3">
+                            <Border Width="{StaticResource Space.3}" Height="16" Background="{DynamicResource Accent}" CornerRadius="{StaticResource Radius.Small}" />
+                            <TextBlock Style="{StaticResource Design.TokenLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6" Tag="Space.4">
+                            <Border Width="{StaticResource Space.4}" Height="16" Background="{DynamicResource Accent}" CornerRadius="{StaticResource Radius.Small}" />
+                            <TextBlock Style="{StaticResource Design.TokenLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6" Tag="Space.6">
+                            <Border Width="{StaticResource Space.6}" Height="16" Background="{DynamicResource Accent}" CornerRadius="{StaticResource Radius.Small}" />
+                            <TextBlock Style="{StaticResource Design.TokenLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6" Tag="Space.8">
+                            <Border Width="{StaticResource Space.8}" Height="16" Background="{DynamicResource Accent}" CornerRadius="{StaticResource Radius.Small}" />
+                            <TextBlock Style="{StaticResource Design.TokenLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6" Tag="Space.12">
+                            <Border Width="{StaticResource Space.12}" Height="16" Background="{DynamicResource Accent}" CornerRadius="{StaticResource Radius.Small}" />
+                            <TextBlock Style="{StaticResource Design.TokenLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Radii + elevation -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.radii}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
+                            <StackPanel Tag="Radius.Small" Margin="0,0,16,0">
+                                <Border Style="{StaticResource Design.RadiusBox}" CornerRadius="{StaticResource Radius.Small}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Tag="Radius.Element" Margin="0,0,16,0">
+                                <Border Style="{StaticResource Design.RadiusBox}" CornerRadius="{StaticResource Radius.Element}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Tag="Radius.Card" Margin="0,0,16,0">
+                                <Border Style="{StaticResource Design.RadiusBox}" CornerRadius="{StaticResource Radius.Card}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Tag="Radius.Panel">
+                                <Border Style="{StaticResource Design.RadiusBox}" CornerRadius="{StaticResource Radius.Panel}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.elevation}" />
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Tag="Shadow.Sm" Margin="0,0,24,0">
+                                <Border Style="{StaticResource Design.ElevationBox}" Effect="{StaticResource Shadow.Sm}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Tag="Shadow.Md" Margin="0,0,24,0">
+                                <Border Style="{StaticResource Design.ElevationBox}" Effect="{StaticResource Shadow.Md}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                            <StackPanel Tag="Shadow.Lg">
+                                <Border Style="{StaticResource Design.ElevationBox}" Effect="{StaticResource Shadow.Lg}" />
+                                <TextBlock Style="{StaticResource Design.SwatchLabel}" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Buttons -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.buttons}" />
+                        <WrapPanel>
+                            <Button Style="{StaticResource Button.Primary}"
+                                    Margin="0,0,12,12"
+                                    Content="{loc:Tr common.save}" />
+                            <Button Style="{StaticResource Button.Secondary}"
+                                    Margin="0,0,12,12"
+                                    Content="{loc:Tr common.cancel}" />
+                            <Button Style="{StaticResource Button.Subtle}"
+                                    Margin="0,0,12,12"
+                                    Content="{loc:Tr common.refresh}" />
+                            <Button Style="{StaticResource Button.Danger}"
+                                    Margin="0,0,12,12"
+                                    Content="{loc:Tr common.delete}" />
+                            <Button Style="{StaticResource Button.Link}"
+                                    Margin="0,0,12,12"
+                                    Content="{loc:Tr common.edit}" />
+                            <Button Style="{StaticResource Button.Icon}"
+                                    Margin="0,0,12,12"
+                                    AutomationProperties.Name="{loc:Tr common.search}">
+                                <TextBlock Style="{StaticResource Icon.Glyph}" Text="{StaticResource Icon.Search}" />
+                            </Button>
+                            <Button Style="{StaticResource Button.Primary}"
+                                    Margin="0,0,12,12"
+                                    IsEnabled="False"
+                                    Content="{loc:Tr design.sampleDisabled}" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Inputs -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.inputs}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="24" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,16">
+                                <TextBlock Style="{StaticResource Text.Label}" Text="{loc:Tr design.sampleLabel}" />
+                                <TextBox Text="{loc:Tr design.samplePlaceholder}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,16">
+                                <TextBlock Style="{StaticResource Text.Label}" Text="{loc:Tr design.sampleCombo}" />
+                                <ComboBox SelectedIndex="0">
+                                    <ComboBoxItem Content="{loc:Tr design.sampleOptionA}" />
+                                    <ComboBoxItem Content="{loc:Tr design.sampleOptionB}" />
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,16">
+                                <TextBlock Style="{StaticResource Text.Label}" Text="{loc:Tr common.date}" />
+                                <DatePicker />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,16">
+                                <TextBlock Style="{StaticResource Text.Label}" Text="{loc:Tr design.sampleRequired}" />
+                                <PasswordBox />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="2" Grid.Column="0">
+                                <CheckBox Content="{loc:Tr design.sampleCheck}" IsChecked="True" />
+                                <CheckBox Margin="0,8,0,0" Content="{loc:Tr design.sampleRadio}" />
+                                <RadioButton Margin="0,8,0,0" GroupName="DesignRadio" Content="{loc:Tr design.sampleRadio}" IsChecked="True" />
+                                <RadioButton Margin="0,8,0,0" GroupName="DesignRadio" Content="{loc:Tr design.sampleOptionB}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="2" Grid.Column="2" VerticalAlignment="Top">
+                                <CheckBox Style="{StaticResource ToggleSwitch}"
+                                          Content="{loc:Tr design.sampleToggle}"
+                                          IsChecked="True" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Data views -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.dataViews}" />
+                        <DataGrid ItemsSource="{Binding Rows}"
+                                  MaxHeight="240"
+                                  AutoGenerateColumns="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Width="2*"
+                                                    Header="{loc:Tr design.sampleColumnName}"
+                                                    Binding="{Binding Name}" />
+                                <DataGridTextColumn Width="*"
+                                                    Header="{loc:Tr design.sampleColumnAmount}"
+                                                    Binding="{Binding Amount}" />
+                                <DataGridTextColumn Width="*"
+                                                    Header="{loc:Tr design.sampleColumnStatus}"
+                                                    Binding="{Binding Status}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Navigation -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.navigation}" />
+                        <TabControl>
+                            <TabItem Header="{loc:Tr design.sampleTabA}">
+                                <TextBlock Style="{StaticResource Text.Body}"
+                                           Margin="0,12,0,0"
+                                           Text="{loc:Tr design.sampleBody}" />
+                            </TabItem>
+                            <TabItem Header="{loc:Tr design.sampleTabB}">
+                                <TextBlock Style="{StaticResource Text.Body}"
+                                           Margin="0,12,0,0"
+                                           Text="{loc:Tr design.sampleCaption}" />
+                            </TabItem>
+                            <TabItem Header="{loc:Tr design.sampleTabC}">
+                                <TextBlock Style="{StaticResource Text.Body}"
+                                           Margin="0,12,0,0"
+                                           Text="{loc:Tr design.sampleBody}" />
+                            </TabItem>
+                        </TabControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Feedback -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.feedback}" />
+
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Text.Subtitle}" Text="{loc:Tr design.sampleCardTitle}" />
+                                <TextBlock Style="{StaticResource Text.Body}" Margin="0,4,0,0" Text="{loc:Tr design.sampleCardBody}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Banner.Success}" Margin="0,0,0,8">
+                            <TextBlock Style="{StaticResource Text.Body}" Text="{loc:Tr design.sampleBanner}" />
+                        </Border>
+                        <Border Style="{StaticResource Banner.Info}" Margin="0,0,0,8">
+                            <TextBlock Style="{StaticResource Text.Body}" Text="{loc:Tr design.sampleBanner}" />
+                        </Border>
+                        <Border Style="{StaticResource Banner.Warning}" Margin="0,0,0,8">
+                            <TextBlock Style="{StaticResource Text.Body}" Text="{loc:Tr design.sampleBanner}" />
+                        </Border>
+                        <Border Style="{StaticResource Banner.Danger}" Margin="0,0,0,16">
+                            <TextBlock Style="{StaticResource Text.Body}" Text="{loc:Tr design.sampleBanner}" />
+                        </Border>
+
+                        <WrapPanel Margin="0,0,0,16">
+                            <Border Style="{StaticResource Badge}" Margin="0,0,12,0">
+                                <TextBlock Style="{StaticResource Text.Caption}" Text="{loc:Tr design.sampleBadge}" />
+                            </Border>
+                            <ProgressBar Width="200"
+                                         Height="4"
+                                         Margin="0,0,12,0"
+                                         VerticalAlignment="Center"
+                                         Minimum="0"
+                                         Maximum="100"
+                                         Value="65" />
+                            <controls:ProgressRing Width="28"
+                                                   Height="28"
+                                                   Thickness="3"
+                                                   IsIndeterminate="False"
+                                                   Value="65"
+                                                   Maximum="100" />
+                        </WrapPanel>
+
+                        <Button Style="{StaticResource Button.Secondary}"
+                                HorizontalAlignment="Left"
+                                Content="{loc:Tr design.sampleTooltip}"
+                                ToolTip="{loc:Tr design.sampleTooltip}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- ============================================================
+                     Phase D3 - reusable components. One sample per control so a
+                     regression in one theme or one direction is visible here.
+                     ============================================================ -->
+
+                <!-- Page header -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.pageHeader}" />
+                        <controls:PageHeader x:Name="HeaderSample"
+                                             Breadcrumb="{loc:Tr design.sampleBreadcrumb}"
+                                             Description="{loc:Tr design.samplePageDescription}"
+                                             Title="{loc:Tr design.sampleTitle}">
+                            <controls:PageHeader.ActionsContent>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource Button.Secondary}"
+                                            Margin="0,0,8,0"
+                                            Content="{loc:Tr components.export}" />
+                                    <Button Style="{StaticResource Button.Primary}"
+                                            Content="{loc:Tr common.add}" />
+                                </StackPanel>
+                            </controls:PageHeader.ActionsContent>
+                        </controls:PageHeader>
+                    </StackPanel>
+                </Border>
+
+                <!-- Stat cards -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.statCards}" />
+                        <UniformGrid Columns="4" Margin="0,0,0,4">
+                            <controls:StatCard x:Name="StatStudents"
+                                               Margin="0,0,12,0"
+                                               Icon="{StaticResource Icon.Students}"
+                                               Title="{loc:Tr design.sampleStatStudents}"
+                                               Value="248"
+                                               Trend="Up"
+                                               TrendText="{loc:Tr design.sampleTrendUp}"
+                                               SparklineValues="{Binding SparklineStudents}" />
+                            <controls:StatCard x:Name="StatGroups"
+                                               Margin="0,0,12,0"
+                                               Icon="{StaticResource Icon.Groups}"
+                                               Title="{loc:Tr design.sampleStatGroups}"
+                                               Value="18"
+                                               Trend="Up"
+                                               TrendText="{loc:Tr design.sampleTrendUp}"
+                                               SparklineValues="{Binding SparklineGroups}" />
+                            <controls:StatCard x:Name="StatAttendance"
+                                               Margin="0,0,12,0"
+                                               Icon="{StaticResource Icon.Attendance}"
+                                               Title="{loc:Tr design.sampleStatAttendance}"
+                                               Value="94%"
+                                               Trend="Down"
+                                               TrendText="{loc:Tr design.sampleTrendDown}"
+                                               SparklineValues="{Binding SparklineAttendance}" />
+                            <controls:StatCard x:Name="StatOutstanding"
+                                               Icon="{StaticResource Icon.Finance}"
+                                               Title="{loc:Tr design.sampleStatOutstanding}"
+                                               Value="12,400"
+                                               Trend="Down"
+                                               TrendText="{loc:Tr design.sampleTrendDown}"
+                                               SparklineValues="{Binding SparklineOutstanding}" />
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Data table -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.dataTable}" />
+                        <Border Style="{StaticResource Design.StateHost}" Height="560">
+                            <controls:DataTable x:Name="TableSample"
+                                                ItemsSource="{Binding Rows}"
+                                                PageSize="5"
+                                                DetailTemplate="{StaticResource Gallery.Detail}"
+                                                AddCommand="{Binding AddSampleCommand}"
+                                                EditCommand="{Binding OpenPanelCommand}"
+                                                DeleteCommand="{Binding OpenDialogCommand}"
+                                                RefreshCommand="{Binding RefreshSampleCommand}"
+                                                ExportCommand="{Binding ExportSampleCommand}"
+                                                EmptyTitle="{loc:Tr design.sampleEmptyTitle}"
+                                                EmptyDescription="{loc:Tr design.sampleEmptyDescription}"
+                                                EmptyActionText="{loc:Tr design.sampleEmptyAction}"
+                                                EmptyActionCommand="{Binding AddSampleCommand}"
+                                                EmptyGlyph="{StaticResource Icon.Students}">
+                                <controls:DataTable.ToolbarContent>
+                                    <controls:Chip Text="{loc:Tr design.sampleTagB}"
+                                                   Tone="Info"
+                                                   Margin="0,0,8,0" />
+                                </controls:DataTable.ToolbarContent>
+                                <controls:DataTable.BulkActionsContent>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Style="{StaticResource Button.Subtle}"
+                                                Margin="0,0,8,0"
+                                                Content="{loc:Tr common.edit}"
+                                                Command="{Binding OpenPanelCommand}" />
+                                        <Button Style="{StaticResource Button.Danger}"
+                                                Content="{loc:Tr common.delete}"
+                                                Command="{Binding OpenDialogCommand}" />
+                                    </StackPanel>
+                                </controls:DataTable.BulkActionsContent>
+                                <controls:DataTable.Columns>
+                                    <controls:DataTableColumn Header="{loc:Tr design.sampleColumnName}"
+                                                              BindingPath="Name"
+                                                              Width="2*" />
+                                    <controls:DataTableColumn Header="{loc:Tr design.sampleColumnAmount}"
+                                                              BindingPath="Amount"
+                                                              Width="*"
+                                                              IsNumeric="True" />
+                                    <controls:DataTableColumn Header="{loc:Tr design.sampleColumnStatus}"
+                                                              BindingPath="Status"
+                                                              Width="*"
+                                                              CellTemplate="{StaticResource Gallery.StatusCell}" />
+                                </controls:DataTable.Columns>
+                            </controls:DataTable>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Empty, error and loading -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.states}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Style="{StaticResource Design.StateHost}" Height="320">
+                                <controls:EmptyState x:Name="EmptySample"
+                                                     Title="{loc:Tr design.sampleEmptyTitle}"
+                                                     Description="{loc:Tr design.sampleEmptyDescription}"
+                                                     ActionText="{loc:Tr design.sampleEmptyAction}"
+                                                     ActionCommand="{Binding AddSampleCommand}" />
+                            </Border>
+
+                            <Border Grid.Column="2" Style="{StaticResource Design.StateHost}" Height="320" Padding="16">
+                                <controls:ErrorState x:Name="ErrorSample"
+                                                     VerticalAlignment="Center"
+                                                     Title="{loc:Tr design.sampleErrorTitle}"
+                                                     Message="{loc:Tr design.sampleErrorMessage}"
+                                                     RetryText="{loc:Tr common.retry}"
+                                                     RetryCommand="{Binding RefreshSampleCommand}" />
+                            </Border>
+
+                            <Border Grid.Column="4" Style="{StaticResource Design.StateHost}" Height="320" Padding="16">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource Component.BadgeText}"
+                                               Margin="0,0,0,12"
+                                               Text="{loc:Tr common.loading}" />
+                                    <controls:SkeletonLoader x:Name="SkeletonSample"
+                                                             Rows="6"
+                                                             RowHeight="18"
+                                                             RowSpacing="12" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Forms -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.forms}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <controls:FormSection x:Name="SectionSample"
+                                                  Grid.Column="0"
+                                                  Title="{loc:Tr design.sampleSectionTitle}"
+                                                  Description="{loc:Tr design.sampleSectionDescription}">
+                                <controls:FormSection.SectionContent>
+                                    <StackPanel>
+                                        <controls:FormField Label="{loc:Tr design.sampleFieldName}"
+                                                            Description="{loc:Tr design.sampleFieldDescription}"
+                                                            IsRequired="True">
+                                            <controls:FormField.FieldContent>
+                                                <TextBox Text="{loc:Tr design.samplePlaceholder}" />
+                                            </controls:FormField.FieldContent>
+                                        </controls:FormField>
+
+                                        <controls:FormField Margin="0,16,0,0"
+                                                            Label="{loc:Tr design.sampleLabel}"
+                                                            ErrorText="{loc:Tr design.sampleFieldError}">
+                                            <controls:FormField.FieldContent>
+                                                <ComboBox SelectedIndex="0">
+                                                    <ComboBoxItem Content="{loc:Tr design.sampleOptionA}" />
+                                                    <ComboBoxItem Content="{loc:Tr design.sampleOptionB}" />
+                                                </ComboBox>
+                                            </controls:FormField.FieldContent>
+                                        </controls:FormField>
+                                    </StackPanel>
+                                </controls:FormSection.SectionContent>
+                            </controls:FormSection>
+
+                            <controls:Wizard x:Name="WizardSample"
+                                             Grid.Column="2"
+                                             Steps="{Binding WizardSteps}"
+                                             FinishCommand="{Binding FinishWizardCommand}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Drawer and dialog -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.overlays}" />
+                        <TextBlock Style="{StaticResource Design.Hint}" Text="{loc:Tr design.samplePanelBody}" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource Button.Primary}"
+                                    Margin="0,0,12,0"
+                                    Content="{loc:Tr design.openPanel}"
+                                    Command="{Binding OpenPanelCommand}" />
+                            <Button Style="{StaticResource Button.Secondary}"
+                                    Content="{loc:Tr design.openDialog}"
+                                    Command="{Binding OpenDialogCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Badges and chips -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.badges}" />
+
+                        <TextBlock Style="{StaticResource Design.Hint}" Text="{loc:Tr attendance.title}" />
+                        <WrapPanel Margin="0,0,0,12">
+                            <controls:StatusBadge x:Name="BadgeSample" Margin="0,0,8,8" ShowDot="True" Tone="Success" Text="{loc:Tr attendance.present}" />
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Warning" Text="{loc:Tr attendance.late}" />
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Danger" Text="{loc:Tr attendance.absent}" />
+                            <controls:StatusBadge Margin="0,0,8,8" Glyph="{StaticResource Icon.Accept}" Tone="Info" Text="{loc:Tr attendance.present}" />
+                        </WrapPanel>
+
+                        <TextBlock Style="{StaticResource Design.Hint}" Text="{loc:Tr finance.title}" />
+                        <WrapPanel Margin="0,0,0,12">
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Success" Text="{loc:Tr finance.paid}" />
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Warning" Text="{loc:Tr finance.partialPaid}" />
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Danger" Text="{loc:Tr finance.unpaidMonths}" />
+                            <controls:StatusBadge Margin="0,0,8,8" Glyph="{StaticResource Icon.Blocked}" Tone="Neutral" Text="{loc:Tr finance.exempted}" />
+                        </WrapPanel>
+
+                        <TextBlock Style="{StaticResource Design.Hint}" Text="{loc:Tr attendance.sessionDetails}" />
+                        <WrapPanel Margin="0,0,0,12">
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Info" Text="{loc:Tr attendance.scheduled}" />
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Accent" Text="{loc:Tr attendance.inProgress}" />
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Success" Text="{loc:Tr attendance.completed}" />
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Warning" Text="{loc:Tr attendance.postponed}" />
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Danger" Text="{loc:Tr attendance.cancelled}" />
+                        </WrapPanel>
+
+                        <TextBlock Style="{StaticResource Design.Hint}" Text="{loc:Tr license.title}" />
+                        <WrapPanel Margin="0,0,0,12">
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Success" Text="{loc:Tr license.statusActive}" />
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Warning" Text="{loc:Tr license.statusExpiringSoon}" />
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Danger" Text="{loc:Tr license.statusReadOnly}" />
+                        </WrapPanel>
+
+                        <TextBlock Style="{StaticResource Design.Hint}" Text="{loc:Tr homework.title}" />
+                        <WrapPanel Margin="0,0,0,12">
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Success" Text="{loc:Tr homework.submitted}" />
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Warning" Text="{loc:Tr homework.late}" />
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Danger" Text="{loc:Tr homework.missing}" />
+                            <controls:StatusBadge Margin="0,0,8,8" ShowDot="True" Tone="Neutral" Text="{loc:Tr homework.pending}" />
+                        </WrapPanel>
+
+                        <WrapPanel>
+                            <controls:Chip x:Name="ChipSample" Margin="0,0,8,8" Tone="Accent" Text="{loc:Tr design.sampleTagA}" ShowClose="True" />
+                            <controls:Chip Margin="0,0,8,8" Glyph="{StaticResource Icon.Tag}" Tone="Info" Text="{loc:Tr design.sampleTagB}" />
+                            <controls:Chip Margin="0,0,8,8" Tone="Success" Text="{loc:Tr design.sampleTagC}" ShowClose="True" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Indicators -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.indicators}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <controls:CapacityBar x:Name="CapacitySample"
+                                                      Margin="0,0,0,16"
+                                                      Caption="{loc:Tr design.sampleCapacityCaption}"
+                                                      Current="24"
+                                                      Maximum="30" />
+                                <controls:CapacityBar x:Name="CapacityFullSample"
+                                                      Margin="0,0,0,16"
+                                                      Caption="{loc:Tr design.sampleCapacityCaption}"
+                                                      Current="30"
+                                                      Maximum="30" />
+                                <controls:ProgressStat x:Name="ProgressSample"
+                                                       Title="{loc:Tr design.sampleProgressTitle}"
+                                                       DisplayText="{loc:Tr design.sampleProgressValue}"
+                                                       Value="75"
+                                                       Maximum="100"
+                                                       Tone="Accent" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Style="{StaticResource Component.BadgeText}"
+                                           Margin="0,0,0,8"
+                                           Text="{loc:Tr design.sampleStatStudents}" />
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <controls:Avatar x:Name="AvatarSampleA" DisplayName="Amina Belkacem" Size="48" />
+                                    <controls:Avatar x:Name="AvatarSampleB" Margin="8,0,0,0" DisplayName="Yacine Haddad" Size="48" />
+                                    <controls:Avatar x:Name="AvatarSampleC" Margin="8,0,0,0" DisplayName="Nour Saidi" Size="48" />
+                                    <controls:Avatar x:Name="AvatarSampleD" Margin="8,0,0,0" DisplayName="Sami Bensalem" Size="48" />
+                                </StackPanel>
+                                <controls:RatingDots x:Name="RatingSample"
+                                                     Margin="0,0,0,8"
+                                                     Value="3"
+                                                     Maximum="5"
+                                                     Tone="Warning" />
+                                <TextBlock Style="{StaticResource Text.Caption}"
+                                           Foreground="{DynamicResource Text.Secondary}"
+                                           Text="{loc:Tr design.sampleRating}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Style="{StaticResource Component.BadgeText}"
+                                           Margin="0,0,0,8"
+                                           Text="{loc:Tr design.sampleProgressTitle}" />
+                                <ProgressBar Height="8"
+                                             Minimum="0"
+                                             Maximum="100"
+                                             Value="64"
+                                             Margin="0,0,0,16" />
+                                <controls:ProgressStat x:Name="ProgressSampleB"
+                                                       Title="{loc:Tr design.sampleStatAttendance}"
+                                                       DisplayText="{loc:Tr design.sampleProgressValue}"
+                                                       Value="94"
+                                                       Maximum="100"
+                                                       Tone="Success" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Pickers and search -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.pickers}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <controls:DateRangePicker x:Name="RangeSample"
+                                                      Grid.Row="0"
+                                                      Grid.Column="0"
+                                                      Margin="0,0,0,16"
+                                                      StartLabel="{loc:Tr common.from}"
+                                                      EndLabel="{loc:Tr common.to}"
+                                                      StartDate="{Binding RangeStart, Mode=TwoWay}"
+                                                      EndDate="{Binding RangeEnd, Mode=TwoWay}" />
+
+                            <controls:MonthPicker x:Name="MonthSample"
+                                                  Grid.Row="0"
+                                                  Grid.Column="2"
+                                                  Margin="0,0,0,16"
+                                                  StartYear="2024"
+                                                  EndYear="2030"
+                                                  MonthNames="{Binding MonthNames}"
+                                                  SelectedMonth="{Binding SelectedMonth, Mode=TwoWay}" />
+
+                            <controls:SearchBox x:Name="SearchSample"
+                                                Grid.Row="1"
+                                                Grid.Column="0"
+                                                Placeholder="{loc:Tr design.sampleSearchPlaceholder}"
+                                                Text="{Binding SearchSample, Mode=TwoWay}" />
+
+                            <controls:TagInput x:Name="TagSample"
+                                               Grid.Row="1"
+                                               Grid.Column="2"
+                                               Placeholder="{loc:Tr design.sampleTagPlaceholder}"
+                                               Tags="{Binding Tags}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Weekly schedule -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.schedule}" />
+                        <controls:WeekScheduleGrid x:Name="ScheduleSample"
+                                                   Margin="0,0,0,16"
+                                                   Title="{loc:Tr design.sampleScheduleTitle}"
+                                                   Description="{loc:Tr design.sampleScheduleDescription}"
+                                                   EmptyText="{loc:Tr design.sampleScheduleEmpty}"
+                                                   DayLabels="{Binding DayLabels}"
+                                                   Items="{Binding ScheduleItems}"
+                                                   StartHour="8"
+                                                   EndHour="14"
+                                                   HourHeight="40"
+                                                   IsEditable="True" />
+
+                        <controls:WeekScheduleGrid x:Name="ScheduleCompactSample"
+                                                   IsCompact="True"
+                                                   Title="{loc:Tr design.sampleScheduleTitle}"
+                                                   EmptyText="{loc:Tr design.sampleScheduleEmpty}"
+                                                   DayLabels="{Binding DayLabels}"
+                                                   Items="{Binding CompactScheduleItems}"
+                                                   StartHour="8"
+                                                   EndHour="12"
+                                                   HourHeight="30" />
+                    </StackPanel>
+                </Border>
+
+                <!-- QR card -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.qrCard}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="24" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Style="{StaticResource Design.QrHost}">
+                                <controls:QrCardPreview x:Name="QrSample"
+                                                        Title="{loc:Tr design.sampleQrTitle}"
+                                                        Subtitle="{loc:Tr design.sampleQrSubtitle}"
+                                                        Code="STU-2026-0001"
+                                                        Footer="{loc:Tr design.sampleQrFooter}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource Component.BadgeText}"
+                                           Text="{loc:Tr design.sampleQrTitle}" />
+                                <TextBlock Style="{StaticResource Text.Caption}"
+                                           Foreground="{DynamicResource Text.Secondary}"
+                                           Margin="0,4,0,0"
+                                           TextWrapping="Wrap"
+                                           Text="{loc:Tr design.sampleQrFooter}" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Charts -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.charts}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="16" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <controls:ChartCard x:Name="ChartLineSample"
+                                                Grid.Row="0"
+                                                Grid.Column="0"
+                                                Height="260"
+                                                Kind="Line"
+                                                Tone="Accent"
+                                                Title="{loc:Tr design.sampleChartTitle}"
+                                                Description="{loc:Tr design.sampleChartDescription}"
+                                                Summary="{loc:Tr design.sampleChartSummary}"
+                                                Labels="{Binding ChartLabels}"
+                                                Values="{Binding ChartValues}"
+                                                EmptyText="{loc:Tr common.noData}" />
+
+                            <controls:ChartCard x:Name="ChartAreaSample"
+                                                Grid.Row="0"
+                                                Grid.Column="2"
+                                                Height="260"
+                                                Kind="Area"
+                                                Tone="Success"
+                                                Title="{loc:Tr design.sampleChartTitle}"
+                                                Description="{loc:Tr design.sampleChartDescription}"
+                                                Summary="{loc:Tr design.sampleChartSummary}"
+                                                Labels="{Binding ChartLabels}"
+                                                Values="{Binding ChartValues}"
+                                                EmptyText="{loc:Tr common.noData}" />
+
+                            <controls:ChartCard x:Name="ChartBarSample"
+                                                Grid.Row="2"
+                                                Grid.Column="0"
+                                                Grid.ColumnSpan="3"
+                                                Height="240"
+                                                Kind="Bar"
+                                                Tone="Info"
+                                                Title="{loc:Tr design.sampleChartTitle}"
+                                                Description="{loc:Tr design.sampleChartDescription}"
+                                                Summary="{loc:Tr design.sampleChartSummary}"
+                                                Labels="{Binding ChartLabels}"
+                                                Values="{Binding ChartValues}"
+                                                EmptyText="{loc:Tr common.noData}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Motion -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.motion}" />
+                        <TextBlock Style="{StaticResource Design.Hint}" Text="{loc:Tr design.motionHint}" />
+                        <TextBlock Style="{StaticResource Design.Hint}" Text="{Binding MotionStatus}" />
+                        <WrapPanel>
+                            <Border Style="{StaticResource Card}"
+                                    Width="220"
+                                    Margin="0,0,16,0"
+                                    behaviors:MotionBehavior.Play="SlideUp">
+                                <TextBlock Style="{StaticResource Text.Body}" Text="{loc:Tr design.sampleCardTitle}" />
+                            </Border>
+                            <Border Style="{StaticResource Card}"
+                                    Width="220"
+                                    behaviors:MotionBehavior.Play="ScaleIn">
+                                <TextBlock Style="{StaticResource Text.Body}" Text="{loc:Tr design.sampleCardBody}" />
+                            </Border>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Icons -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.icons}" />
+                        <WrapPanel>
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Dashboard}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Students}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Groups}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Attendance}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Academics}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Finance}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Settings}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Add}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Edit}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Delete}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Save}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Search}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Filter}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Refresh}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Print}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Export}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Import}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Calendar}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Clock}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Mail}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Phone}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Bell}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Lock}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Info}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Warning}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Error}" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Back}" behaviors:RtlMirrorBehavior.IsEnabled="True" />
+                            <TextBlock Style="{StaticResource Icon.Glyph}" Margin="0,0,16,12" Text="{StaticResource Icon.Forward}" behaviors:RtlMirrorBehavior.IsEnabled="True" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Accessibility -->
+                <Border Style="{StaticResource Design.Section}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Design.SectionTitle}" Text="{loc:Tr design.accessibility}" />
+                        <TextBlock Style="{StaticResource Text.Body}" Text="{loc:Tr design.accessibilityHint}" />
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <Border Grid.Row="2"
+                Background="{DynamicResource Surface.Alt}"
+                BorderBrush="{DynamicResource Border.Subtle}"
+                BorderThickness="0,1,0,0"
+                Padding="24,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           Style="{StaticResource Text.Caption}"
+                           VerticalAlignment="Center"
+                           Text="{Binding ShortcutHint}" />
+                <Button Grid.Column="1"
+                        Style="{StaticResource Button.Primary}"
+                        Content="{loc:Tr common.close}"
+                        Command="{Binding CloseCommand}" />
+            </Grid>
+        </Border>
+
+        <!-- ============================================================
+             Phase D3 - drawer and dialog overlays. They sit at the root so
+             they cover the whole window, and are collapsed while closed.
+             ============================================================ -->
+        <controls:SidePanel x:Name="PanelSample"
+                            Grid.Row="0"
+                            Grid.RowSpan="3"
+                            IsOpen="{Binding IsPanelOpen}"
+                            PanelWidth="440"
+                            Title="{loc:Tr design.samplePanelTitle}"
+                            CloseCommand="{Binding ClosePanelCommand}">
+            <controls:SidePanel.PanelContent>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Body}"
+                               TextWrapping="Wrap"
+                               Text="{loc:Tr design.samplePanelBody}" />
+
+                    <controls:FormField Margin="0,16,0,0"
+                                        Label="{loc:Tr design.sampleFieldName}"
+                                        Description="{loc:Tr design.sampleFieldDescription}"
+                                        IsRequired="True">
+                        <controls:FormField.FieldContent>
+                            <TextBox Text="{loc:Tr design.samplePlaceholder}" />
+                        </controls:FormField.FieldContent>
+                    </controls:FormField>
+
+                    <controls:FormField Margin="0,16,0,0" Label="{loc:Tr design.sampleLabel}">
+                        <controls:FormField.FieldContent>
+                            <TextBox Text="{loc:Tr design.samplePlaceholder}" />
+                        </controls:FormField.FieldContent>
+                    </controls:FormField>
+                </StackPanel>
+            </controls:SidePanel.PanelContent>
+            <controls:SidePanel.ActionsContent>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource Button.Secondary}"
+                            Content="{loc:Tr common.cancel}"
+                            Command="{Binding ClosePanelCommand}" />
+                    <Button Style="{StaticResource Button.Primary}"
+                            Margin="8,0,0,0"
+                            Content="{loc:Tr common.save}"
+                            Command="{Binding ClosePanelCommand}" />
+                </StackPanel>
+            </controls:SidePanel.ActionsContent>
+        </controls:SidePanel>
+
+        <controls:Dialog x:Name="DialogSample"
+                         Grid.Row="0"
+                         Grid.RowSpan="3"
+                         IsOpen="{Binding IsDialogOpen}"
+                         Tone="Danger"
+                         Title="{loc:Tr design.sampleDialogTitle}"
+                         Description="{loc:Tr design.sampleDialogDescription}"
+                         PrimaryText="{loc:Tr common.delete}"
+                         PrimaryCommand="{Binding ConfirmDialogCommand}"
+                         SecondaryText="{loc:Tr common.cancel}"
+                         SecondaryCommand="{Binding CloseDialogCommand}"
+                         CloseCommand="{Binding CloseDialogCommand}">
+            <controls:Dialog.DialogContent>
+                <TextBlock Style="{StaticResource Text.Body}"
+                           TextWrapping="Wrap"
+                           Text="{loc:Tr design.sampleDialogDescription}" />
+            </controls:Dialog.DialogContent>
+        </controls:Dialog>
+    </Grid>
+</Window>

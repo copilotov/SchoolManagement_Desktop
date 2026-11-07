@@ -1,0 +1,104 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- =====================================================================
+         Phase D1 - Dark palette. Same key set as Colors.Light.xaml; the
+         parity test fails the build if a key is added to only one theme.
+         ===================================================================== -->
+
+    <!-- Surfaces -->
+    <SolidColorBrush x:Key="Surface.Base" Color="#141C22" />
+    <SolidColorBrush x:Key="Surface.Card" Color="#1D262F" />
+    <SolidColorBrush x:Key="Surface.Alt" Color="#25323E" />
+    <SolidColorBrush x:Key="Surface.Sunken" Color="#101820" />
+    <SolidColorBrush x:Key="Surface.Mica" Color="#D9141C22" />
+    <SolidColorBrush x:Key="Surface.Hover" Color="#26333D" />
+    <SolidColorBrush x:Key="Surface.Selected" Color="#17423E" />
+    <SolidColorBrush x:Key="Surface.RowAlt" Color="#202B34" />
+
+    <!-- Borders -->
+    <SolidColorBrush x:Key="Border.Subtle" Color="#2D3D4B" />
+    <SolidColorBrush x:Key="Border.Strong" Color="#425769" />
+    <SolidColorBrush x:Key="Border.Focus" Color="#2DD4BF" />
+
+    <!-- Text -->
+    <SolidColorBrush x:Key="Text.Primary" Color="#F3F7FA" />
+    <SolidColorBrush x:Key="Text.Secondary" Color="#9AAEC0" />
+    <SolidColorBrush x:Key="Text.Disabled" Color="#5A6C7C" />
+    <SolidColorBrush x:Key="Text.OnAccent" Color="#052E2B" />
+
+    <!-- Accent -->
+    <SolidColorBrush x:Key="Accent" Color="#2DD4BF" />
+    <SolidColorBrush x:Key="Accent.Hover" Color="#5EEAD4" />
+    <SolidColorBrush x:Key="Accent.Pressed" Color="#14B8A6" />
+    <SolidColorBrush x:Key="Accent.Container" Color="#113E3B" />
+    <SolidColorBrush x:Key="Accent.OnContainer" Color="#A7F3D0" />
+
+    <!-- Semantic -->
+    <SolidColorBrush x:Key="Success" Color="#4ADE80" />
+    <SolidColorBrush x:Key="Success.Hover" Color="#86EFAC" />
+    <SolidColorBrush x:Key="Success.Container" Color="#143821" />
+    <SolidColorBrush x:Key="Success.OnContainer" Color="#86EFAC" />
+
+    <SolidColorBrush x:Key="Warning" Color="#FBBF24" />
+    <SolidColorBrush x:Key="Warning.Hover" Color="#FDE68A" />
+    <SolidColorBrush x:Key="Warning.Container" Color="#3D2E0A" />
+    <SolidColorBrush x:Key="Warning.OnContainer" Color="#FDE68A" />
+
+    <SolidColorBrush x:Key="Danger" Color="#F87171" />
+    <SolidColorBrush x:Key="Danger.Hover" Color="#FCA5A5" />
+    <SolidColorBrush x:Key="Danger.Container" Color="#421B1B" />
+    <SolidColorBrush x:Key="Danger.OnContainer" Color="#FCA5A5" />
+
+    <SolidColorBrush x:Key="Info" Color="#38BDF8" />
+    <SolidColorBrush x:Key="Info.Hover" Color="#7DD3FC" />
+    <SolidColorBrush x:Key="Info.Container" Color="#0C344E" />
+    <SolidColorBrush x:Key="Info.OnContainer" Color="#7DD3FC" />
+
+    <!-- Functional: attendance -->
+    <SolidColorBrush x:Key="Attendance.Present" Color="#4ADE80" />
+    <SolidColorBrush x:Key="Attendance.Absent" Color="#F87171" />
+    <SolidColorBrush x:Key="Attendance.Late" Color="#FBBF24" />
+    <SolidColorBrush x:Key="Attendance.Excused" Color="#38BDF8" />
+    <SolidColorBrush x:Key="Attendance.Unexcused" Color="#FCA5A5" />
+
+    <!-- Functional: finance -->
+    <SolidColorBrush x:Key="Finance.Paid" Color="#4ADE80" />
+    <SolidColorBrush x:Key="Finance.Partial" Color="#FBBF24" />
+    <SolidColorBrush x:Key="Finance.Overdue" Color="#F87171" />
+    <SolidColorBrush x:Key="Finance.Exempt" Color="#38BDF8" />
+
+    <!-- Scrim behind modal overlays -->
+    <SolidColorBrush x:Key="Overlay.Scrim" Color="#B3000000" />
+
+    <!-- =====================================================================
+         Legacy aliases (Phase 1-7 screens).
+         ===================================================================== -->
+    <SolidColorBrush x:Key="Brush.Background" Color="#141C22" />
+    <SolidColorBrush x:Key="Brush.Surface" Color="#1D262F" />
+    <SolidColorBrush x:Key="Brush.SurfaceVariant" Color="#25323E" />
+    <SolidColorBrush x:Key="Brush.Primary" Color="#2DD4BF" />
+    <SolidColorBrush x:Key="Brush.OnPrimary" Color="#052E2B" />
+    <SolidColorBrush x:Key="Brush.PrimaryContainer" Color="#113E3B" />
+    <SolidColorBrush x:Key="Brush.OnPrimaryContainer" Color="#A7F3D0" />
+    <SolidColorBrush x:Key="Brush.TextPrimary" Color="#F3F7FA" />
+    <SolidColorBrush x:Key="Brush.TextSecondary" Color="#9AAEC0" />
+    <SolidColorBrush x:Key="Brush.Border" Color="#2D3D4B" />
+    <SolidColorBrush x:Key="Brush.NavRail" Color="#1D262F" />
+    <SolidColorBrush x:Key="Brush.StatusBar" Color="#101820" />
+    <SolidColorBrush x:Key="Brush.Hover" Color="#26333D" />
+    <SolidColorBrush x:Key="Brush.Selected" Color="#17423E" />
+    <SolidColorBrush x:Key="Brush.Success" Color="#4ADE80" />
+    <SolidColorBrush x:Key="Brush.Warning" Color="#FBBF24" />
+    <SolidColorBrush x:Key="Brush.Info" Color="#38BDF8" />
+    <SolidColorBrush x:Key="Brush.Danger" Color="#F87171" />
+    <SolidColorBrush x:Key="Brush.Present" Color="#4ADE80" />
+    <SolidColorBrush x:Key="Brush.Late" Color="#FBBF24" />
+    <SolidColorBrush x:Key="Brush.Excused" Color="#38BDF8" />
+    <SolidColorBrush x:Key="Brush.Unexcused" Color="#FCA5A5" />
+    <SolidColorBrush x:Key="Brush.Paid" Color="#4ADE80" />
+    <SolidColorBrush x:Key="Brush.PartiallyPaid" Color="#FBBF24" />
+    <SolidColorBrush x:Key="Brush.Unpaid" Color="#F87171" />
+    <SolidColorBrush x:Key="Brush.Exempted" Color="#38BDF8" />
+
+</ResourceDictionary>

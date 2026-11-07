@@ -1,0 +1,337 @@
+<UserControl x:Class="SchoolManagement.Desktop.Views.HomeworkReportPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization">
+    <UserControl.InputBindings>
+        <KeyBinding Key="N" Modifiers="Control" Command="{Binding AddCommand}" />
+        <KeyBinding Key="F5" Command="{Binding ReloadCommand}" />
+        <KeyBinding Key="Escape" Command="{Binding CancelEditorCommand}" />
+        <KeyBinding Key="Enter" Command="{Binding SaveEditorCommand}" />
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="24">
+            <StackPanel DockPanel.Dock="Top">
+                <Grid>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="{loc:Tr common.back}"
+                                Command="{Binding BackCommand}"
+                                Style="{StaticResource LinkButton}"
+                                VerticalAlignment="Center"
+                                Margin="0,0,12,0" />
+                        <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitle}" />
+                    </StackPanel>
+                    <Button Content="{loc:Tr homework.add}"
+                            Command="{Binding AddCommand}"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource PrimaryButton}" />
+                </Grid>
+
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Text="{loc:Tr reports.filterGroup}"
+                               Style="{StaticResource FieldLabel}"
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0" />
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding Groups}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" />
+                    <TextBlock Grid.Column="2"
+                               Text="{loc:Tr reports.fromDate}"
+                               Style="{StaticResource FieldLabel}"
+                               VerticalAlignment="Center"
+                               Margin="16,0,8,0" />
+                    <TextBox Grid.Column="3"
+                             Text="{Binding FromDate, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Column="4"
+                               Text="{loc:Tr reports.toDate}"
+                               Style="{StaticResource FieldLabel}"
+                               VerticalAlignment="Center"
+                               Margin="16,0,8,0" />
+                    <TextBox Grid.Column="5"
+                             Text="{Binding ToDate, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Grid.Column="7"
+                            Content="{loc:Tr common.refresh}"
+                            Command="{Binding ReloadCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="12,0,0,0" />
+                </Grid>
+
+                <Border Background="{DynamicResource Brush.SurfaceVariant}"
+                        BorderBrush="{DynamicResource Brush.Danger}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="12,8"
+                        Margin="0,12,0,0"
+                        Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding ErrorMessage}"
+                                   Foreground="{DynamicResource Brush.Danger}"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center" />
+                        <Button Content="{loc:Tr license.renewNow}"
+                                Command="{Binding RenewLicenseCommand}"
+                                Style="{StaticResource LinkButton}"
+                                Margin="12,0,0,0"
+                                Visibility="{Binding IsRenewVisible, Converter={StaticResource BoolToVisibility}}" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="{DynamicResource Brush.Success}"
+                           Margin="0,12,0,0"
+                           Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibility}}" />
+
+                <TextBlock Text="{loc:Tr homework.noHomeworksPeriod}"
+                           Style="{StaticResource PageSubtitle}"
+                           Margin="0,12,0,0"
+                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}" />
+            </StackPanel>
+
+            <DataGrid ItemsSource="{Binding Items}"
+                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                      CanUserSortColumns="False"
+                      IsReadOnly="True"
+                      AutoGenerateColumns="False"
+                      Margin="0,14,0,0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="{loc:Tr homework.homeworkTitle}"
+                                        Binding="{Binding Title}"
+                                        Width="*" />
+                    <DataGridTextColumn Header="{loc:Tr homework.dueDate}"
+                                        Binding="{Binding DueText}"
+                                        Width="180" />
+                    <DataGridTextColumn Header="{loc:Tr homework.nextSession}"
+                                        Binding="{Binding TargetSessionText}"
+                                        Width="200" />
+                    <DataGridTextColumn Header="{loc:Tr homework.submissionsCount}"
+                                        Binding="{Binding CountsText}"
+                                        Width="130" />
+                    <DataGridTextColumn Header="{loc:Tr common.status}"
+                                        Binding="{Binding StatusText}"
+                                        Width="110" />
+                    <DataGridTemplateColumn Header="{loc:Tr common.actions}" Width="220">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="{loc:Tr homework.submissionsList}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.OpenSubmissionsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" />
+                                    <Button Content="{loc:Tr common.edit}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="8,0,0,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+
+        <!-- Add / edit homework -->
+        <Border Style="{StaticResource EditorOverlay}"
+                Panel.ZIndex="10"
+                Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource EditorCard}">
+                <StackPanel>
+                    <TextBlock Text="{Binding EditorTitle}"
+                               Style="{StaticResource SectionHeader}"
+                               Margin="0,0,0,12" />
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="500">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="24" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Grid.Column="0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{loc:Tr groups.name}" Style="{StaticResource FieldLabel}" />
+                                    <TextBlock Text="*"
+                                               Style="{StaticResource FieldLabel}"
+                                               Foreground="{DynamicResource Brush.Danger}"
+                                               ToolTip="{loc:Tr common.required}" />
+                                </StackPanel>
+                                <ComboBox ItemsSource="{Binding EditorGroups}"
+                                          DisplayMemberPath="Label"
+                                          SelectedItem="{Binding SelectedEditorGroup, Mode=TwoWay}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="0" Grid.Column="2">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{loc:Tr homework.session}" Style="{StaticResource FieldLabel}" />
+                                    <TextBlock Text="*"
+                                               Style="{StaticResource FieldLabel}"
+                                               Foreground="{DynamicResource Brush.Danger}"
+                                               ToolTip="{loc:Tr common.required}" />
+                                </StackPanel>
+                                <ComboBox ItemsSource="{Binding EditorSessions}"
+                                          DisplayMemberPath="Label"
+                                          SelectedItem="{Binding SelectedEditorSession, Mode=TwoWay}" />
+                                <TextBlock Text="{Binding EditorSessionsHint}"
+                                           Style="{StaticResource PageSubtitle}"
+                                           FontSize="11"
+                                           TextWrapping="Wrap"
+                                           Visibility="{Binding HasNoEditorSessions, Converter={StaticResource BoolToVisibility}}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="0">
+                                <TextBlock Text="{loc:Tr homework.nextSession}" Style="{StaticResource FieldLabel}" />
+                                <ComboBox ItemsSource="{Binding TargetSessions}"
+                                          DisplayMemberPath="Label"
+                                          SelectedItem="{Binding SelectedTargetSession, Mode=TwoWay}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="2">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{loc:Tr homework.dueDate}" Style="{StaticResource FieldLabel}" />
+                                    <TextBlock Text="*"
+                                               Style="{StaticResource FieldLabel}"
+                                               Foreground="{DynamicResource Brush.Danger}"
+                                               ToolTip="{loc:Tr common.required}" />
+                                </StackPanel>
+                                <TextBox Text="{Binding EditorDueDate, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="2" Grid.ColumnSpan="3">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{loc:Tr homework.homeworkTitle}" Style="{StaticResource FieldLabel}" />
+                                    <TextBlock Text="*"
+                                               Style="{StaticResource FieldLabel}"
+                                               Foreground="{DynamicResource Brush.Danger}"
+                                               ToolTip="{loc:Tr common.required}" />
+                                </StackPanel>
+                                <TextBox Text="{Binding EditorTitleText, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="3" Grid.ColumnSpan="3">
+                                <TextBlock Text="{loc:Tr homework.content}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding EditorDescription, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         Height="90"
+                                         VerticalScrollBarVisibility="Auto" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="4" Grid.ColumnSpan="3">
+                                <TextBlock Text="{loc:Tr common.notes}" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding EditorNotes, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </Grid>
+                    </ScrollViewer>
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,18,0,0">
+                        <Button Content="{loc:Tr common.cancel}"
+                                Command="{Binding CancelEditorCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="0,0,10,0" />
+                        <Button Content="{loc:Tr common.save}"
+                                Command="{Binding SaveEditorCommand}"
+                                Style="{StaticResource PrimaryButton}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- Submissions board -->
+        <Border Style="{StaticResource EditorOverlay}"
+                Panel.ZIndex="11"
+                Visibility="{Binding IsSubmissionsOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource EditorCard}" MinWidth="720">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding SubmissionsTitle}"
+                                   Style="{StaticResource SectionHeader}" />
+                        <TextBlock Text="{Binding SubmissionsSummary}"
+                                   Style="{StaticResource PageSubtitle}"
+                                   Margin="16,0,0,0"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <TextBlock Text="{loc:Tr attendance.noSubmissions}"
+                               Style="{StaticResource PageSubtitle}"
+                               Margin="0,12,0,0"
+                               Visibility="{Binding HasNoSubmissions, Converter={StaticResource BoolToVisibility}}" />
+
+                    <DataGrid ItemsSource="{Binding SubmissionRows}"
+                              MaxHeight="360"
+                              CanUserSortColumns="False"
+                              IsReadOnly="True"
+                              AutoGenerateColumns="False"
+                              Margin="0,12,0,0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="{loc:Tr students.studentCode}"
+                                                Binding="{Binding StudentCode}"
+                                                Width="110" />
+                            <DataGridTextColumn Header="{loc:Tr students.fullName}"
+                                                Binding="{Binding StudentName}"
+                                                Width="*" />
+                            <DataGridTextColumn Header="{loc:Tr homework.submitted}"
+                                                Binding="{Binding SubmittedText}"
+                                                Width="150" />
+                            <DataGridTextColumn Header="{loc:Tr common.status}"
+                                                Binding="{Binding StatusText}"
+                                                Width="100" />
+                            <DataGridTemplateColumn Header="{loc:Tr common.actions}" Width="280">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="{loc:Tr homework.submitted}"
+                                                    Style="{StaticResource LinkButton}"
+                                                    Command="{Binding MarkSubmittedCommand}" />
+                                            <Button Content="{loc:Tr homework.late}"
+                                                    Style="{StaticResource LinkButton}"
+                                                    Command="{Binding MarkLateCommand}"
+                                                    Margin="8,0,0,0" />
+                                            <Button Content="{loc:Tr homework.missing}"
+                                                    Style="{StaticResource LinkButton}"
+                                                    Foreground="{DynamicResource Brush.Danger}"
+                                                    Command="{Binding MarkMissingCommand}"
+                                                    Margin="8,0,0,0" />
+                                            <Button Content="{loc:Tr homework.pending}"
+                                                    Style="{StaticResource LinkButton}"
+                                                    Command="{Binding MarkPendingCommand}"
+                                                    Margin="8,0,0,0" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <Button Content="{loc:Tr common.close}"
+                            Command="{Binding CloseSubmissionsCommand}"
+                            Style="{StaticResource SecondaryButton}"
+                            HorizontalAlignment="Right"
+                            Margin="0,16,0,0" />
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

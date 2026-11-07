@@ -1,14 +1,44 @@
 ﻿<Application x:Class="SchoolManagement.Desktop.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- ThemeService replaces this first dictionary in place when the
-                     user switches theme. Styles must use DynamicResource. -->
+
+                <!-- Phase D1 - Fluent 2 foundation.
+                     Order matters:
+                       1. WPF-UI theme + controls (library defaults, Mica, etc.)
+                       2. ThemeService replaces the first dictionary whose Source
+                          contains "Resources/Themes/" in place when the user
+                          switches theme, so the shim must stay at that position.
+                       3. Design tokens: base element styles, typography, spacing,
+                          radii, elevation, icons and motion.
+                       4. Component styles, which override the library defaults.
+
+                     Every screen must reference colours with DynamicResource so a
+                     theme switch repaints without recreating a view. -->
+                <ui:ThemesDictionary Theme="Light" />
+                <ui:ControlsDictionary />
+
+                <!-- ThemeService swaps this dictionary in place. -->
                 <ResourceDictionary Source="Resources/Themes/Light.xaml" />
-                <ResourceDictionary Source="Resources/Styles.xaml" />
+
+                <ResourceDictionary Source="Resources/Design/Base.xaml" />
+                <ResourceDictionary Source="Resources/Design/Typography.xaml" />
+                <ResourceDictionary Source="Resources/Design/Spacing.xaml" />
+                <ResourceDictionary Source="Resources/Design/Radii.xaml" />
+                <ResourceDictionary Source="Resources/Design/Elevation.xaml" />
+                <ResourceDictionary Source="Resources/Design/Icons.xaml" />
+                <ResourceDictionary Source="Resources/Design/Animations.xaml" />
+
+                <ResourceDictionary Source="Resources/Styles/Buttons.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Inputs.xaml" />
+                <ResourceDictionary Source="Resources/Styles/DataViews.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Navigation.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Feedback.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Components.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

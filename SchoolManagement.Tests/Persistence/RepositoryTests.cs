@@ -52,7 +52,7 @@ public sealed class RepositoryTests
             NullLogger<StudentRepository>.Instance);
 
         var active = await repository.SearchAsync(null, true, 0, 10);
-        active.IsSuccess.Should().BeTrue();
+        active.IsSuccess.Should().BeTrue(active.Failure?.Detail);
         active.Value.Should().HaveCount(2);
         active.Value.Select(item => item.LastName).Should().ContainInOrder("Anderson", "Brown");
         active.Value[0].GuardianName.Should().Be("Guardian One");

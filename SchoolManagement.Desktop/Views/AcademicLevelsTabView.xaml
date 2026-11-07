@@ -1,0 +1,172 @@
+<UserControl x:Class="SchoolManagement.Desktop.Views.AcademicLevelsTabView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization">
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding EditSelectedCommand}" />
+        <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />
+        <KeyBinding Key="Escape" Command="{Binding CancelEditorCommand}" />
+        <KeyBinding Key="Enter" Command="{Binding SaveEditorCommand}" />
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="24">
+            <StackPanel DockPanel.Dock="Top">
+                <Grid>
+                    <TextBlock Text="{loc:Tr levels.title}"
+                               Style="{StaticResource PageTitle}" />
+                    <Button Content="{loc:Tr levels.add}"
+                            Command="{Binding AddCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center" />
+                </Grid>
+
+                <Grid Margin="0,16,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0"
+                             MaxWidth="320"
+                             HorizontalAlignment="Left"
+                             MinWidth="220"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                    <ComboBox Grid.Column="1"
+                              Width="170"
+                              Margin="12,0,0,0"
+                              ItemsSource="{Binding SortOptions}"
+                              DisplayMemberPath="Label"
+                              SelectedItem="{Binding SelectedSort, Mode=TwoWay}" />
+                    <CheckBox Grid.Column="2"
+                              Margin="16,0,0,0"
+                              IsChecked="{Binding SortDescending, Mode=TwoWay}"
+                              Content="{loc:Tr common.sortDescending}" />
+                    <StackPanel Grid.Column="3" Orientation="Horizontal">
+                        <CheckBox Margin="16,0,0,0"
+                                  IsChecked="{Binding IncludeInactive, Mode=TwoWay}"
+                                  Content="{loc:Tr common.includeInactive}" />
+                        <Button Content="{loc:Tr common.search}"
+                                Command="{Binding SearchCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="12,0,0,0" />
+                        <Button Content="{loc:Tr common.refresh}"
+                                Command="{Binding ReloadCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="8,0,0,0" />
+                    </StackPanel>
+                </Grid>
+
+                <Border Background="{DynamicResource Brush.SurfaceVariant}"
+                        BorderBrush="{DynamicResource Brush.Danger}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="12,8"
+                        Margin="0,12,0,0"
+                        Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding ErrorMessage}"
+                                   Foreground="{DynamicResource Brush.Danger}"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center" />
+                        <Button Content="{loc:Tr license.renewNow}"
+                                Command="{Binding RenewLicenseCommand}"
+                                Style="{StaticResource LinkButton}"
+                                Margin="12,0,0,0"
+                                Visibility="{Binding IsRenewVisible, Converter={StaticResource BoolToVisibility}}" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="{DynamicResource Brush.Success}"
+                           Margin="0,12,0,0"
+                           Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibility}}" />
+            </StackPanel>
+
+            <DataGrid ItemsSource="{Binding Items}"
+                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                      CanUserSortColumns="False"
+                      Margin="0,14,0,0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="{loc:Tr levels.name}"
+                                        Binding="{Binding Name}"
+                                        Width="*" />
+                    <DataGridTextColumn Header="{loc:Tr levels.orderIndex}"
+                                        Binding="{Binding OrderIndex}"
+                                        Width="110" />
+                    <DataGridTextColumn Header="{loc:Tr levels.gradesCount}"
+                                        Binding="{Binding GradesCount}"
+                                        Width="110" />
+                    <DataGridTextColumn Header="{loc:Tr levels.groupsCount}"
+                                        Binding="{Binding GroupsCount}"
+                                        Width="110" />
+                    <DataGridCheckBoxColumn Header="{loc:Tr common.active}"
+                                            Binding="{Binding IsActive}"
+                                            Width="90" />
+                    <DataGridTemplateColumn Header="{loc:Tr common.actions}" Width="190">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="{loc:Tr common.edit}"
+                                            Style="{StaticResource LinkButton}"
+                                            Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" />
+                                    <Button Content="{loc:Tr common.delete}"
+                                            Style="{StaticResource LinkButton}"
+                                            Foreground="{DynamicResource Brush.Danger}"
+                                            Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="8,0,0,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+
+        <Border Style="{StaticResource EditorOverlay}"
+                Panel.ZIndex="10"
+                Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource EditorCard}">
+                <StackPanel>
+                    <TextBlock Text="{Binding EditorTitle}"
+                               Style="{StaticResource SectionHeader}" />
+
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{loc:Tr levels.name}"
+                                   Style="{StaticResource FieldLabel}" />
+                        <TextBlock Text="*"
+                                   Style="{StaticResource FieldLabel}"
+                                   Foreground="{DynamicResource Brush.Danger}"
+                                   ToolTip="{loc:Tr common.required}" />
+                    </StackPanel>
+                    <TextBox Text="{Binding EditorName, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <TextBlock Text="{loc:Tr levels.orderIndex}"
+                               Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding EditorOrder, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <CheckBox Content="{loc:Tr common.active}"
+                              IsChecked="{Binding EditorIsActive, Mode=TwoWay}"
+                              Margin="0,16,0,0" />
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,22,0,0">
+                        <Button Content="{loc:Tr common.cancel}"
+                                Command="{Binding CancelEditorCommand}"
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="0,0,10,0" />
+                        <Button Content="{loc:Tr common.save}"
+                                Command="{Binding SaveEditorCommand}"
+                                Style="{StaticResource PrimaryButton}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

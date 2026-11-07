@@ -1,0 +1,74 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- =====================================================================
+         Phase D1 - Motion.
+         Every animation is <= 250ms and uses a decelerate curve (Fluent 2).
+         They are opt-in: a control only animates when Behaviors/MotionBehavior
+         asks for one, and MotionBehavior returns immediately when Windows
+         "Animation effects" (SystemParameters.ClientAreaAnimation) is off.
+
+         x:Shared="False" so two controls never share one sealed Storyboard.
+         ===================================================================== -->
+
+    <CubicEase x:Key="Ease.Decelerate" EasingMode="EaseOut" />
+    <CubicEase x:Key="Ease.Accelerate" EasingMode="EaseIn" />
+
+    <!-- Fade in: opacity only, safest for any element -->
+    <Storyboard x:Key="Anim.FadeIn" x:Shared="False">
+        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                         From="0"
+                         To="1"
+                         Duration="0:0:0.20"
+                         EasingFunction="{StaticResource Ease.Decelerate}" />
+    </Storyboard>
+
+    <!-- Slide up: needs a TranslateTransform on RenderTransform -->
+    <Storyboard x:Key="Anim.SlideUp" x:Shared="False">
+        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                         From="0"
+                         To="1"
+                         Duration="0:0:0.20"
+                         EasingFunction="{StaticResource Ease.Decelerate}" />
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                         From="12"
+                         To="0"
+                         Duration="0:0:0.20"
+                         EasingFunction="{StaticResource Ease.Decelerate}" />
+    </Storyboard>
+
+    <!-- Scale in: needs a ScaleTransform on RenderTransform -->
+    <Storyboard x:Key="Anim.ScaleIn" x:Shared="False">
+        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                         From="0"
+                         To="1"
+                         Duration="0:0:0.20"
+                         EasingFunction="{StaticResource Ease.Decelerate}" />
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                         From="0.96"
+                         To="1"
+                         Duration="0:0:0.20"
+                         EasingFunction="{StaticResource Ease.Decelerate}" />
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                         From="0.96"
+                         To="1"
+                         Duration="0:0:0.20"
+                         EasingFunction="{StaticResource Ease.Decelerate}" />
+    </Storyboard>
+
+    <!-- Hover lift: -2px on hover, back to 0 on leave -->
+    <Storyboard x:Key="Anim.HoverLift.Up" x:Shared="False">
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                         To="-2"
+                         Duration="0:0:0.12"
+                         EasingFunction="{StaticResource Ease.Decelerate}" />
+    </Storyboard>
+
+    <Storyboard x:Key="Anim.HoverLift.Down" x:Shared="False">
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                         To="0"
+                         Duration="0:0:0.12"
+                         EasingFunction="{StaticResource Ease.Decelerate}" />
+    </Storyboard>
+
+</ResourceDictionary>
