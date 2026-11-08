@@ -115,6 +115,23 @@ public sealed partial class EnrollmentViewModel : PageViewModel, IDisposable
         ? 0
         : Math.Clamp((int)Math.Round(Group.ActiveEnrollments * 100d / Group.MaxStudents), 0, 100);
 
+    /// <summary>Seat usage sentence shown next to the capacity bar.</summary>
+    public string CapacityWarningText => Group is null
+        ? string.Empty
+        : _localization.Tr(
+            TranslationKeys.Enrollment.CapacityWarning,
+            ("enrolled", Group.ActiveEnrollments.ToString(CultureInfo.InvariantCulture)),
+            ("max", Group.MaxStudents.ToString(CultureInfo.InvariantCulture)));
+
+    /// <summary>A full group shows the designed warning, but never blocks.</summary>
+    public bool ShowCapacityWarning => IsFull;
+
+    public string CapacityFullText => Group is null
+        ? string.Empty
+        : _localization.Tr(
+            TranslationKeys.Enrollment.CapacityFull,
+            ("max", Group.MaxStudents.ToString(CultureInfo.InvariantCulture)));
+
     public async Task InitializeAsync(int groupId, CancellationToken cancellationToken = default)
     {
         GroupId = groupId;
@@ -164,6 +181,10 @@ public sealed partial class EnrollmentViewModel : PageViewModel, IDisposable
 
     [RelayCommand]
     private Task ReloadAsync() => LoadAsync();
+
+    /// <summary>Enter in the search box reloads the available-student column.</summary>
+    [RelayCommand]
+    private Task SearchAsync() => LoadAsync();
 
     [RelayCommand]
     private async Task EnrollAsync(StudentListItem? item)
@@ -302,6 +323,9 @@ public sealed partial class EnrollmentViewModel : PageViewModel, IDisposable
         OnPropertyChanged(nameof(IsFull));
         OnPropertyChanged(nameof(CapacityText));
         OnPropertyChanged(nameof(CapacityPercent));
+        OnPropertyChanged(nameof(CapacityWarningText));
+        OnPropertyChanged(nameof(ShowCapacityWarning));
+        OnPropertyChanged(nameof(CapacityFullText));
         OnPropertyChanged(nameof(HasAvailable));
         OnPropertyChanged(nameof(HasEnrolled));
     }

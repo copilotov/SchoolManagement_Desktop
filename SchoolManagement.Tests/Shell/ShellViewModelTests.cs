@@ -6,12 +6,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using SchoolManagement.Application.Common;
+using SchoolManagement.Application.Dashboard;
 using SchoolManagement.Application.Groups;
 using SchoolManagement.Application.Licensing;
 using SchoolManagement.Application.Localization;
 using SchoolManagement.Application.Repositories;
 using SchoolManagement.Application.Settings;
 using SchoolManagement.Application.Students;
+using SchoolManagement.Application.Time;
 using SchoolManagement.Application.UseCases;
 using SchoolManagement.Desktop.Services;
 using SchoolManagement.Desktop.ViewModels;
@@ -210,6 +212,22 @@ public sealed class ShellViewModelTests
     {
         var services = new ServiceCollection();
         services.AddSingleton<INavigationService, NavigationService>();
+
+        // Phase D4: DashboardViewModel loads a read-only snapshot, so the shell
+        // tests need its use case and the substitutes behind it.
+        services.AddSingleton(Substitute.For<ILocalizationService>());
+        services.AddSingleton(Substitute.For<ITrustedClock>());
+        services.AddSingleton(Substitute.For<ILicenseService>());
+        services.AddSingleton(Substitute.For<IActivationDialogService>());
+        services.AddSingleton<LicenseViewModel>();
+        services.AddSingleton(Substitute.For<IDashboardRepository>());
+        services.AddSingleton(Substitute.For<IStudentRepository>());
+        services.AddSingleton(Substitute.For<IGroupRepository>());
+        services.AddSingleton(Substitute.For<IPaymentRepository>());
+        services.AddSingleton(Substitute.For<IReferenceDataRepository>());
+        services.AddSingleton(Substitute.For<ISettingsRepository>());
+        services.AddTransient<GetDashboardSnapshotUseCase>();
+
         services.AddTransient<DashboardViewModel>();
         return services.BuildServiceProvider();
     }

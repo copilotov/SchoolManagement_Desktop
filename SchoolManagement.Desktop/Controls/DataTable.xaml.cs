@@ -128,6 +128,15 @@ public partial class DataTable : UserControl
                 FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
                 OnSelectedItemChanged));
 
+    public static readonly DependencyProperty SelectedItemsProperty =
+        DependencyProperty.Register(
+            nameof(SelectedItems), typeof(IList), typeof(DataTable),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
+    public static readonly DependencyProperty ItemActivatedCommandProperty =
+        DependencyProperty.Register(
+            nameof(ItemActivatedCommand), typeof(ICommand), typeof(DataTable), new PropertyMetadata(null));
+
     public static readonly DependencyProperty ExportCommandProperty =
         DependencyProperty.Register(
             nameof(ExportCommand), typeof(ICommand), typeof(DataTable), new PropertyMetadata(null));
@@ -269,6 +278,24 @@ public partial class DataTable : UserControl
     {
         get => GetValue(SelectedItemProperty);
         set => SetValue(SelectedItemProperty, value);
+    }
+
+    /// <summary>
+    /// A snapshot of the selected rows of the current page. Kept as a plain
+    /// <see cref="IList"/> so a view model can bind it one-way-to-source and
+    /// enable a bulk action without the table knowing what a row is.
+    /// </summary>
+    public IList? SelectedItems
+    {
+        get => (IList?)GetValue(SelectedItemsProperty);
+        set => SetValue(SelectedItemsProperty, value);
+    }
+
+    /// <summary>Runs on a row double-click, with the row as the command parameter.</summary>
+    public ICommand? ItemActivatedCommand
+    {
+        get => (ICommand?)GetValue(ItemActivatedCommandProperty);
+        set => SetValue(ItemActivatedCommandProperty, value);
     }
 
     public ICommand? ExportCommand
@@ -459,6 +486,7 @@ public partial class DataTable : UserControl
             }
 
             Table.SelectedItems.Clear();
+            SetCurrentValue(SelectedItemsProperty, new List<object>());
         }
         finally
         {
@@ -710,7 +738,14 @@ public partial class DataTable : UserControl
 
         var details = new MenuItem();
         BindLocalized(details, TranslationKeys.Common.Details);
-        details.SetBinding(MenuItem.CommandProperty, new Binding(nameof(EditCommand)) { Source = this });
+        details.SetBinding(MenuItem.CommandProperty, new Binding(nameof(ItemActivatedCommand)) { Source = this });
+        details.SetBinding(
+            UIElement.VisibilityProperty,
+            new Binding(nameof(ItemActivatedCommand))
+            {
+                Source = this,
+                Converter = new ObjectToVisibilityConverter(),
+            });
 
         var edit = new MenuItem();
         BindLocalized(edit, TranslationKeys.Common.Edit);
@@ -797,6 +832,7 @@ public partial class DataTable : UserControl
         var count = Table.SelectedItems.Count;
         SetValue(SelectionCountPropertyKey, count);
         SetValue(HasSelectionPropertyKey, count > 0);
+        SetCurrentValue(SelectedItemsProperty, Table.SelectedItems.Cast<object>().ToList());
 
         _isSyncingSelection = true;
         try
@@ -834,9 +870,27 @@ public partial class DataTable : UserControl
         UpdateState();
     }
 
-    private void OnPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    private void OnRowDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (e.OriginalSource is not DependencyObject source)
+        if (ItemActivatedCommand is not { } command || Table is null || e.OriginalSource is not DependencyObject source)
+        {
+            return;
+        }
+
+        if (ItemsControl.ContainerFromElement(Table, source) is not DataGridRow row)
+        {
+            return;
+        }
+
+        if (command.CanExecute(row.Item))
+        {
+            command.Execute(row.Item);
+            e.Handled = true;
+        }
+    }
+
+    private void OnPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {        if (e.OriginalSource is not DependencyObject source)
         {
             return;
         }

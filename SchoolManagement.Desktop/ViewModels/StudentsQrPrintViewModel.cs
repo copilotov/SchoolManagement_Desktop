@@ -78,6 +78,22 @@ public sealed partial class StudentsQrPrintViewModel : PageViewModel
     [ObservableProperty]
     private string _summary = string.Empty;
 
+    [ObservableProperty]
+    private double _zoom = 1.0;
+
+    public string ZoomText => $"{Math.Round(Zoom * 100):0} %";
+
+    [RelayCommand]
+    private void ZoomIn() => Zoom = Math.Min(2.0, Math.Round(Zoom + 0.1, 2));
+
+    [RelayCommand]
+    private void ZoomOut() => Zoom = Math.Max(0.4, Math.Round(Zoom - 0.1, 2));
+
+    [RelayCommand]
+    private void ResetZoom() => Zoom = 1.0;
+
+    partial void OnZoomChanged(double value) => OnPropertyChanged(nameof(ZoomText));
+
     public async Task InitializeAsync(
         StudentListQuery query,
         CancellationToken cancellationToken = default)
@@ -97,36 +113,61 @@ public sealed partial class StudentsQrPrintViewModel : PageViewModel
                 return;
             }
 
-            _studentIds.Clear();
-            _studentIds.AddRange(page.Value.Select(item => item.Id));
-
-            var rendered = await _renderQr.ExecuteAsync(_studentIds, cancellationToken).ConfigureAwait(false);
-            if (rendered.IsFailure)
-            {
-                ShowFailure(rendered.Failure!);
-                return;
-            }
-
-            Tiles.Clear();
-            foreach (var item in rendered.Value)
-            {
-                Tiles.Add(new StudentQrTile(
-                    BitmapHelper.ToBitmapSource(item.Png),
-                    item.FullName,
-                    item.StudentCode));
-            }
-
-            Summary = _localization.Tr(
-                TranslationKeys.Students.QrPageOf,
-                ("current", Tiles.Count.ToString(CultureInfo.InvariantCulture)),
-                ("total", Tiles.Count.ToString(CultureInfo.InvariantCulture)));
-            ErrorMessage = string.Empty;
+            await RenderAsync(page.Value.Select(item => item.Id).ToList(), cancellationToken)
+                .ConfigureAwait(false);
         }
         finally
         {
             IsLoading = false;
             OnPropertyChanged(nameof(IsEmpty));
         }
+    }
+
+    /// <summary>Renders the QR sheet of an explicit selection from the list page.</summary>
+    public async Task InitializeAsync(
+        IReadOnlyCollection<int> studentIds,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(studentIds);
+
+        IsLoading = true;
+        try
+        {
+            await RenderAsync(studentIds.ToList(), cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            IsLoading = false;
+            OnPropertyChanged(nameof(IsEmpty));
+        }
+    }
+
+    private async Task RenderAsync(List<int> ids, CancellationToken cancellationToken)
+    {
+        _studentIds.Clear();
+        _studentIds.AddRange(ids);
+
+        var rendered = await _renderQr.ExecuteAsync(_studentIds, cancellationToken).ConfigureAwait(false);
+        if (rendered.IsFailure)
+        {
+            ShowFailure(rendered.Failure!);
+            return;
+        }
+
+        Tiles.Clear();
+        foreach (var item in rendered.Value)
+        {
+            Tiles.Add(new StudentQrTile(
+                BitmapHelper.ToBitmapSource(item.Png),
+                item.FullName,
+                item.StudentCode));
+        }
+
+        Summary = _localization.Tr(
+            TranslationKeys.Students.QrPageOf,
+            ("current", Tiles.Count.ToString(CultureInfo.InvariantCulture)),
+            ("total", Tiles.Count.ToString(CultureInfo.InvariantCulture)));
+        ErrorMessage = string.Empty;
     }
 
     [RelayCommand]

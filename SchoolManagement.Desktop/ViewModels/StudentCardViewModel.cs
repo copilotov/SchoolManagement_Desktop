@@ -52,7 +52,23 @@ public sealed partial class StudentCardViewModel : PageViewModel
     [ObservableProperty]
     private string _errorMessage = string.Empty;
 
+    [ObservableProperty]
+    private double _zoom = 1.0;
+
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+    public string ZoomText => $"{Math.Round(Zoom * 100):0} %";
+
+    [RelayCommand]
+    private void ZoomIn() => Zoom = Math.Min(2.0, Math.Round(Zoom + 0.1, 2));
+
+    [RelayCommand]
+    private void ZoomOut() => Zoom = Math.Max(0.4, Math.Round(Zoom - 0.1, 2));
+
+    [RelayCommand]
+    private void ResetZoom() => Zoom = 1.0;
+
+    partial void OnZoomChanged(double value) => OnPropertyChanged(nameof(ZoomText));
 
     public string Title => _localization.Tr(TranslationKeys.Students.CardPreview);
 

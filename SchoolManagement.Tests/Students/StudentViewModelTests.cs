@@ -113,6 +113,8 @@ internal sealed class StudentVmHarness
 
     public IPdfPrintService Print { get; } = Substitute.For<IPdfPrintService>();
 
+    public ISmsLauncher Sms { get; } = Substitute.For<ISmsLauncher>();
+
     public INavigationService Navigation { get; } = Substitute.For<INavigationService>();
 
     public IStudentRepository Repository { get; } = Substitute.For<IStudentRepository>();
@@ -160,11 +162,13 @@ internal sealed class StudentVmHarness
         Dialogs,
         Files,
         Navigation,
+        Sms,
         License);
 
     public StudentDetailsViewModel CreateDetails() => new(
         new GetStudentDetailsUseCase(Repository),
         new GetStudentActivityUseCase(Enrollments, Payments, Attendance, Repository),
+        new RenderStudentQrUseCase(Repository, Cards),
         Localization,
         Navigation);
 

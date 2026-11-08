@@ -23,6 +23,20 @@ public sealed class WeekScheduleMovedEventArgs(
     public TimeSpan End { get; } = end;
 }
 
+/// <summary>Raised when the user clicks an empty cell while the grid is editable.</summary>
+public sealed class WeekScheduleSlotRequestedEventArgs(int dayIndex, TimeSpan start) : EventArgs
+{
+    public int DayIndex { get; } = dayIndex;
+
+    public TimeSpan Start { get; } = start;
+}
+
+/// <summary>Raised when a slot is double-clicked, so the caller can edit it.</summary>
+public sealed class WeekScheduleSlotActivatedEventArgs(WeekScheduleItem item) : EventArgs
+{
+    public WeekScheduleItem Item { get; } = item;
+}
+
 /// <summary>
 /// Phase D3 - the weekly timetable, days x hours.
 ///
@@ -115,6 +129,12 @@ public partial class WeekScheduleGrid : UserControl
     }
 
     public event EventHandler<WeekScheduleMovedEventArgs>? SlotMoved;
+
+    /// <summary>Raised by a click on an empty cell when <see cref="IsEditable"/> is on.</summary>
+    public event EventHandler<WeekScheduleSlotRequestedEventArgs>? SlotRequested;
+
+    /// <summary>Raised by a double-click on a slot, whatever the edit mode.</summary>
+    public event EventHandler<WeekScheduleSlotActivatedEventArgs>? SlotActivated;
 
     public bool HasConflicts => (bool)GetValue(HasConflictsProperty);
 
@@ -266,6 +286,13 @@ public partial class WeekScheduleGrid : UserControl
             {
                 var cell = BuildCell(row % 2 == 0 ? "Surface.Card" : "Surface.RowAlt", isHeader: false, row + 1, day + 1);
                 cell.Tag = (day, hour);
+
+                if (IsEditable)
+                {
+                    cell.Cursor = Cursors.Cross;
+                    cell.MouseLeftButtonDown += OnCellMouseDown;
+                }
+
                 GridHost.Children.Add(cell);
             }
         }
@@ -375,6 +402,15 @@ public partial class WeekScheduleGrid : UserControl
 
         SetCurrentValue(SelectedItemProperty, item);
 
+        if (e.ClickCount >= 2)
+        {
+            _dragItem = null;
+            slot.ReleaseMouseCapture();
+            SlotActivated?.Invoke(this, new WeekScheduleSlotActivatedEventArgs(item));
+            e.Handled = true;
+            return;
+        }
+
         if (!IsEditable)
         {
             return;
@@ -445,6 +481,17 @@ public partial class WeekScheduleGrid : UserControl
 
         Rebuild();
         SlotMoved?.Invoke(this, new WeekScheduleMovedEventArgs(item, day, item.Start, item.End));
+    }
+
+    private void OnCellMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (!IsEditable || sender is not Border { Tag: ValueTuple<int, int> cell })
+        {
+            return;
+        }
+
+        SlotRequested?.Invoke(this, new WeekScheduleSlotRequestedEventArgs(cell.Item1, TimeSpan.FromHours(cell.Item2)));
+        e.Handled = true;
     }
 
     private (int Day, int Hour)? FindCell(Point position)

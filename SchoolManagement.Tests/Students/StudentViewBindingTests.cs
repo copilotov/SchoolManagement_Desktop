@@ -20,7 +20,6 @@ public sealed class StudentViewBindingTests
     public static TheoryData<string, Type> Views => new()
     {
         { "StudentsPage.xaml", typeof(StudentsViewModel) },
-        { "StudentFormView.xaml", typeof(StudentsViewModel) },
         { "StudentDetailsPage.xaml", typeof(StudentDetailsViewModel) },
         { "StudentCardPage.xaml", typeof(StudentCardViewModel) },
         { "StudentsQrPrintPage.xaml", typeof(StudentsQrPrintViewModel) },
@@ -52,6 +51,17 @@ public sealed class StudentViewBindingTests
         xaml.Should().Contain("Key=\"Delete\"");
         xaml.Should().Contain("Key=\"Escape\"");
         xaml.Should().Contain("Key=\"Enter\"");
+    }
+
+    [Fact]
+    public void The_student_list_hosts_the_shared_form_commands()
+    {
+        // Phase D5: the form view owns no command; the side panel on the list
+        // page carries Save and Cancel.
+        var xaml = ReadView("StudentsPage.xaml");
+
+        xaml.Should().Contain("Command=\"{Binding SaveEditorCommand}\"");
+        xaml.Should().Contain("Command=\"{Binding CancelEditorCommand}\"");
     }
 
     [Fact]

@@ -204,6 +204,7 @@
                           ScrollViewer.CanContentScroll="True"
                           Sorting="OnSorting"
                           SelectionChanged="OnSelectionChanged"
+                          MouseDoubleClick="OnRowDoubleClick"
                           PreviewMouseRightButtonDown="OnPreviewMouseRightButtonDown" />
 
                 <controls:SkeletonLoader x:Name="Skeleton"

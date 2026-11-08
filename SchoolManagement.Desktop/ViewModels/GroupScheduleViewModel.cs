@@ -7,6 +7,8 @@ using SchoolManagement.Application.Groups;
 using SchoolManagement.Application.Localization;
 using SchoolManagement.Application.Repositories.Models;
 using SchoolManagement.Application.UseCases;
+using SchoolManagement.Application.Time;
+using SchoolManagement.Desktop.Controls;
 using SchoolManagement.Desktop.Services;
 using SchoolManagement.Domain.Common;
 using SchoolManagement.Domain.Policies;
@@ -49,12 +51,15 @@ public sealed partial class GroupScheduleViewModel : PageViewModel, IDisposable
     private readonly GetScheduleConflictsUseCase _getConflicts;
     private readonly SaveScheduleSlotUseCase _saveSlot;
     private readonly DeleteScheduleSlotUseCase _deleteSlot;
+    private readonly GenerateSessionsUseCase _generateSessions;
     private readonly ILocalizationService _localization;
     private readonly IUserDialogService _dialogs;
     private readonly INavigationService _navigation;
+    private readonly ITrustedClock _clock;
     private readonly LicenseViewModel _license;
 
     private ScheduleSaveRequest? _pendingRequest;
+    private string _pendingSuccessKey = TranslationKeys.Groups.ScheduleSaved;
     private bool _disposed;
 
     public GroupScheduleViewModel(
@@ -63,9 +68,11 @@ public sealed partial class GroupScheduleViewModel : PageViewModel, IDisposable
         GetScheduleConflictsUseCase getConflicts,
         SaveScheduleSlotUseCase saveSlot,
         DeleteScheduleSlotUseCase deleteSlot,
+        GenerateSessionsUseCase generateSessions,
         ILocalizationService localization,
         IUserDialogService dialogs,
         INavigationService navigation,
+        ITrustedClock clock,
         LicenseViewModel license)
     {
         _getGroup = getGroup ?? throw new ArgumentNullException(nameof(getGroup));
@@ -73,13 +80,17 @@ public sealed partial class GroupScheduleViewModel : PageViewModel, IDisposable
         _getConflicts = getConflicts ?? throw new ArgumentNullException(nameof(getConflicts));
         _saveSlot = saveSlot ?? throw new ArgumentNullException(nameof(saveSlot));
         _deleteSlot = deleteSlot ?? throw new ArgumentNullException(nameof(deleteSlot));
+        _generateSessions = generateSessions ?? throw new ArgumentNullException(nameof(generateSessions));
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
         _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
+        _clock = clock ?? throw new ArgumentNullException(nameof(clock));
         _license = license ?? throw new ArgumentNullException(nameof(license));
 
         Days = new ObservableCollection<ScheduleDayGroup>();
         WeekDays = new ObservableCollection<ScheduleDayOption>();
+        DayLabels = new ObservableCollection<string>();
+        WeekScheduleItems = new ObservableCollection<WeekScheduleItem>();
         Conflicts = new ObservableCollection<ScheduleConflictLine>();
 
         BuildWeekDayOptions();
@@ -89,6 +100,12 @@ public sealed partial class GroupScheduleViewModel : PageViewModel, IDisposable
     public ObservableCollection<ScheduleDayGroup> Days { get; }
 
     public ObservableCollection<ScheduleDayOption> WeekDays { get; }
+
+    /// <summary>The seven day headers of the interactive grid, in the same order.</summary>
+    public ObservableCollection<string> DayLabels { get; }
+
+    /// <summary>The slots projected for the D3 weekly grid (0 = Saturday).</summary>
+    public ObservableCollection<WeekScheduleItem> WeekScheduleItems { get; }
 
     public ObservableCollection<ScheduleConflictLine> Conflicts { get; }
 
@@ -208,6 +225,132 @@ public sealed partial class GroupScheduleViewModel : PageViewModel, IDisposable
 
     [RelayCommand]
     private Task ReloadAsync() => LoadAsync();
+
+    /// <summary>Generates today's sessions for this group only.</summary>
+    [RelayCommand]
+    private async Task GenerateSessionsAsync()
+    {
+        var now = _clock.LocalNow;
+        var date = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
+
+        IsBusy = true;
+        try
+        {
+            var result = await _generateSessions
+                .ExecuteAsync(new SessionGenerationRequest(date, GroupId))
+                .ConfigureAwait(false);
+
+            if (result.IsFailure)
+            {
+                ShowFailure(result.Failure!);
+                return;
+            }
+
+            if (result.Value.CreatedCount > 0)
+            {
+                ShowSuccess(
+                    TranslationKeys.Groups.GenerationCreated,
+                    ("count", result.Value.CreatedCount.ToString(CultureInfo.InvariantCulture)));
+            }
+            else if (result.Value.AlreadyExisted > 0)
+            {
+                ShowSuccess(TranslationKeys.Groups.GenerationAlreadyExists);
+            }
+            else
+            {
+                ShowSuccess(TranslationKeys.Groups.GenerationNone);
+            }
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// Click on an empty grid cell: opens the shared editor already on that day
+    /// and hour, with a one-hour range. Nothing is written until Save.
+    /// </summary>
+    public void RequestSlot(int dayIndex, TimeSpan start)
+    {
+        ClearMessages();
+        EditingSlotId = null;
+        SelectedDay = WeekDays.FirstOrDefault(option => option.Value == dayIndex) ?? WeekDays.FirstOrDefault();
+        EditorStartTime = ScheduleTimeParser.Format(start);
+        EditorEndTime = ScheduleTimeParser.Format(start.Add(TimeSpan.FromHours(1)));
+        EditorLocation = string.Empty;
+        EditorIsActive = true;
+        EditorTitle = _localization.Tr(TranslationKeys.Groups.AddTimeSlot);
+        IsEditorOpen = true;
+    }
+
+    /// <summary>Double-click on a slot: opens the shared editor on it.</summary>
+    public void ActivateSlot(WeekScheduleItem? item)
+    {
+        if (item?.Tag is ScheduleSlotItem slot)
+        {
+            EditSlot(slot);
+        }
+    }
+
+    /// <summary>
+    /// Drop of a dragged slot. The move goes through the same conflict check as
+    /// the editor, so a double booking stays a warning and never a silent write.
+    /// </summary>
+    public async Task MoveSlotAsync(WeekScheduleItem? item, int dayIndex, TimeSpan start, TimeSpan end)
+    {
+        if (item?.Tag is not ScheduleSlotItem slot)
+        {
+            return;
+        }
+
+        if (!ScheduleConflictPolicy.IsValidRange(start, end))
+        {
+            ShowFailure(Failure.Validation(TranslationKeys.Groups.InvalidTimeRange));
+            return;
+        }
+
+        var request = new ScheduleSaveRequest(
+            GroupId,
+            dayIndex,
+            start,
+            end,
+            slot.Location,
+            slot.IsActive,
+            slot.Id);
+
+        IsBusy = true;
+        try
+        {
+            var conflicts = await _getConflicts.ExecuteAsync(
+                GroupId,
+                request.DayOfWeek,
+                request.StartTime,
+                request.EndTime,
+                request.SlotId).ConfigureAwait(false);
+
+            if (conflicts.IsFailure)
+            {
+                ShowFailure(conflicts.Failure!);
+                return;
+            }
+
+            if (conflicts.Value.HasConflicts)
+            {
+                _pendingRequest = request;
+                _pendingSuccessKey = TranslationKeys.Groups.MoveSaved;
+                ShowConflicts(conflicts.Value);
+                IsConflictOpen = true;
+                return;
+            }
+
+            await PersistAsync(request, TranslationKeys.Groups.MoveSaved).ConfigureAwait(false);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
 
     [RelayCommand]
     private void AddSlot()
@@ -335,12 +478,13 @@ public sealed partial class GroupScheduleViewModel : PageViewModel, IDisposable
             if (conflicts.Value.HasConflicts)
             {
                 _pendingRequest = request;
+                _pendingSuccessKey = TranslationKeys.Groups.ScheduleSaved;
                 ShowConflicts(conflicts.Value);
                 IsConflictOpen = true;
                 return;
             }
 
-            await PersistAsync(request).ConfigureAwait(false);
+            await PersistAsync(request, TranslationKeys.Groups.ScheduleSaved).ConfigureAwait(false);
         }
         finally
         {
@@ -352,7 +496,9 @@ public sealed partial class GroupScheduleViewModel : PageViewModel, IDisposable
     private async Task ConfirmConflictAsync()
     {
         var request = _pendingRequest;
+        var successKey = _pendingSuccessKey;
         _pendingRequest = null;
+        _pendingSuccessKey = TranslationKeys.Groups.ScheduleSaved;
         IsConflictOpen = false;
         Conflicts.Clear();
 
@@ -364,7 +510,7 @@ public sealed partial class GroupScheduleViewModel : PageViewModel, IDisposable
         IsBusy = true;
         try
         {
-            await PersistAsync(request).ConfigureAwait(false);
+            await PersistAsync(request, successKey).ConfigureAwait(false);
         }
         finally
         {
@@ -387,7 +533,7 @@ public sealed partial class GroupScheduleViewModel : PageViewModel, IDisposable
         await LoadAsync().ConfigureAwait(false);
     }
 
-    private async Task PersistAsync(ScheduleSaveRequest request)
+    private async Task PersistAsync(ScheduleSaveRequest request, string successKey)
     {
         var result = await _saveSlot.ExecuteAsync(request).ConfigureAwait(false);
         if (result.IsFailure)
@@ -397,7 +543,7 @@ public sealed partial class GroupScheduleViewModel : PageViewModel, IDisposable
         }
 
         IsEditorOpen = false;
-        ShowSuccess(TranslationKeys.Groups.ScheduleSaved);
+        ShowSuccess(successKey);
         await LoadAsync().ConfigureAwait(false);
     }
 
@@ -417,6 +563,41 @@ public sealed partial class GroupScheduleViewModel : PageViewModel, IDisposable
         }
 
         HasAnySlot = any;
+        RebuildGrid(slots);
+    }
+
+    /// <summary>
+    /// Projects the stored slots for the D3 grid. A slot keeps its id as the tag
+    /// so a drag or a double-click can resolve the row it came from, and the
+    /// group name is the resource key the conflict policy compares.
+    /// </summary>
+    private void RebuildGrid(IReadOnlyList<ScheduleSlotItem> slots)
+    {
+        WeekScheduleItems.Clear();
+        foreach (var slot in slots.OrderBy(slot => slot.StartTime))
+        {
+            var start = slot.StartTime.TimeOfDay;
+            var end = slot.EndTime.TimeOfDay;
+            var range = string.Format(
+                CultureInfo.InvariantCulture,
+                "{0} - {1}",
+                ScheduleTimeParser.Format(start),
+                ScheduleTimeParser.Format(end));
+
+            var subtitle = string.IsNullOrWhiteSpace(slot.Location)
+                ? range
+                : string.Format(CultureInfo.InvariantCulture, "{0} • {1}", range, slot.Location);
+
+            WeekScheduleItems.Add(new WeekScheduleItem(
+                slot.DayOfWeek,
+                start,
+                end,
+                GroupName,
+                subtitle,
+                slot.IsActive ? StatusTone.Accent : StatusTone.Neutral,
+                GroupName,
+                slot));
+        }
     }
 
     private void ShowConflicts(ScheduleCheckResult check)
@@ -445,12 +626,13 @@ public sealed partial class GroupScheduleViewModel : PageViewModel, IDisposable
     private void BuildWeekDayOptions()
     {
         WeekDays.Clear();
+        DayLabels.Clear();
         for (var index = 0; index < 7; index++)
         {
             var day = WeekDayCalculator.FromIndex(index);
-            WeekDays.Add(new ScheduleDayOption(
-                index,
-                _localization.Tr(WeekDayCalculator.ToTranslationKey(day))));
+            var label = _localization.Tr(WeekDayCalculator.ToTranslationKey(day));
+            WeekDays.Add(new ScheduleDayOption(index, label));
+            DayLabels.Add(label);
         }
     }
 
@@ -461,10 +643,17 @@ public sealed partial class GroupScheduleViewModel : PageViewModel, IDisposable
         IsRenewVisible = failure.Kind == FailureKind.License;
     }
 
-    private void ShowSuccess(string messageKey)
+    private void ShowSuccess(string messageKey, params (string Key, object Value)[] parameters)
     {
         ErrorMessage = string.Empty;
-        StatusMessage = _localization.Tr(messageKey);
+        StatusMessage = parameters.Length == 0
+            ? _localization.Tr(messageKey)
+            : _localization.Tr(
+                messageKey,
+                parameters.ToDictionary(
+                    parameter => parameter.Key,
+                    parameter => Convert.ToString(parameter.Value, CultureInfo.InvariantCulture) ?? string.Empty,
+                    StringComparer.Ordinal));
         IsRenewVisible = false;
     }
 

@@ -9,10 +9,11 @@ schedule, sessions, timetable, printable report) and 7 (sessions, attendance,
 QR scanning, extra sessions, homeworks, attendance report) are complete. Phase
 D1, the design-system foundation (Fluent 2 palette, typography, tokens, control
 styles, motion, RTL mirroring, Debug-only design gallery), D2, the shell and
-navigation, and D3, the reusable component library (page header, stat cards,
+navigation, D3, the reusable component library (page header, stat cards,
 data table, states, forms, overlays, badges, indicators, pickers, weekly grid,
-QR card, charts), are also complete; later phases redesign the individual
-screens on top of them.
+QR card, charts), D4, the dashboard command center, and D5, the Students and
+Groups screens, are also complete; later phases redesign the remaining screens
+on top of them.
 
 ## Solution map
 
@@ -1038,6 +1039,247 @@ specifically so `Text.Secondary` on a selected row still reaches AA.
 - Every new string goes through `TranslationKeys.Components`/`Months` (or the
   owning entity section) and all three JSON files; the parity tests enforce it.
 
+## Design System (Phase D4 - dashboard command center)
+
+- **Scope**: Phase D4 redesigns `DashboardPage` only. It is the first feature
+  screen built on the D1 tokens, the D2 shell and the D3 components. It reads
+  one immutable snapshot through a single read use case and renders the
+  manager's day: greeting, KPI row, today's session timeline, prioritized
+  attention list, three charts, quick actions and the new-school guided setup.
+  No write, schema, licensing or existing screen changed.
+- **Documented read-only exception**: the dashboard needs aggregate counters,
+  grouped revenue, a weekly attendance aggregate and a level distribution that
+  no existing repository exposes without loading whole tables. Phase D4 adds
+  `IDashboardRepository` (read methods only) and `DashboardRepository`
+  (Infrastructure, grouped/counted EF queries) plus
+  `GetDashboardSnapshotUseCase`. There is no write method, no `[WriteOperation]`
+  and no license guard, because the call cannot mutate anything. This is the
+  only persistence-shaped addition allowed in a design phase and it is recorded
+  here.
+- **Snapshot**: `Application/Dashboard/DashboardModels.cs` defines
+  `DashboardSnapshot` (`Today`, `MonthYear`, `ActiveStudents`, `ActiveGroups`,
+  `TodaySessionCount`, `MonthRevenue`, `MonthOutstanding`,
+  `ArrearsStudentCount`, `Sessions`, `AbsenceAlerts`, `RevenueTrend`,
+  `WeekAttendance`, `LevelDistribution`, `SetupSteps`, `IsNewSchool`) plus
+  `DashboardSessionItem`, `DashboardAbsenceAlert`, `DashboardMonthPoint`,
+  `DashboardDayPoint` (`AttendanceRate = (present + late) / total`,
+  `Total = present + absent + late`) and `DashboardLevelSlice`.
+- **Use case composition**: `GetDashboardSnapshotUseCase` reads the school name,
+  student/group counts, monthly dues, the aggregate repository, the absence
+  limit and the reference lookups. It never re-implements the finance or
+  absence rules: dues come from `IPaymentRepository.GetMonthlyDuesAsync`, the
+  limit from `ISettingsRepository.GetAbsenceLimitAsync` (default 5), and the
+  setup step counts from the existing lookup repositories. `FillRevenueTrend`
+  always returns the six requested months and `FillWeek` always returns seven
+  school days (`0 = Saturday ... 6 = Friday`), so a chart never changes shape
+  between reloads.
+- **New school**: `IsNewSchool` is `ActiveGroups == 0 && ActiveStudents == 0`.
+  The overview is replaced by the five-step guide (levels -> subjects ->
+  teachers -> groups -> students), each step carrying its own live count,
+  `IsComplete`, localized state text and a `Success`/`Neutral` tone. Every step
+  navigates to the matching screen (the first three open the `Academics` tab
+  host); the guide disappears as soon as the school has a group or a student.
+- **Responsive grid**: `DashboardLayout` (Desktop, pure) returns the column
+  counts from the real content width: stat cards and charts 3 / 2 / 1
+  (>=1200, >=760, below), quick actions 4 / 2 / 1, attention rows 2 / 1.
+  `DashboardPage.SizeChanged` calls `DashboardViewModel.UpdateWidth`, which
+  updates the bound `UniformGrid.Columns` values. No horizontal scrollbar
+  exists at any width down to 320 px.
+- **Navigation with a ready-made filter**: every stat card, attention row,
+  quick action and setup step is a command on the ViewModel that opens an
+  existing screen (`ShellTab.Students`, `Groups`, `Academics`, `Finance`,
+  `Attendance`, the take-attendance page or the activation dialog). The
+  dashboard never hosts a write form.
+- **Attention priority**: the list is built in a fixed order - payment arrears
+  (Warning), students over the absence limit (Danger), sessions without
+  attendance (Info), license nearing expiry / read-only / clock tampered
+  (Warning/Danger) - so the manager sees money, then children, then today's
+  bookkeeping, then the license. A quiet day shows the all-clear state instead
+  of an empty card.
+- **License**: the page reuses the shell's single `LicenseViewModel`; a license
+  alert opens the existing activation dialog and the banner behaviour is
+  unchanged. `DashboardViewModel` subscribes to the language and license pulses
+  and unsubscribes on `Dispose`.
+- **Charts**: the three `ChartCard`s use the D3 LiveCharts2 wrapper, so they
+  repaint on `ThemeMonitor.ThemeChanged`; the ViewModel names its attendance
+  properties `WeekAttendanceValues` / `WeekAttendanceLabels` /
+  `WeekAttendanceSummary` so they never shadow `AttendanceLabels`. Empty data
+  produces empty series and no summary, never a misleading zero line.
+- **Localization**: 75 `TranslationKeys.Dashboard` constants and 83
+  `dashboard.*` keys, identical in ar/en/fr. The greeting is composed from
+  `dashboard.greetingWithName` with `{greeting}` and `{name}` parameters; hours
+  5-11 morning, 12-16 afternoon, otherwise evening. Weekday and month names
+  reuse `days.*` / `months.*`. The `DashboardLocalization` test double
+  substitutes placeholders so tests assert the final sentence.
+
+### Files (Phase D4)
+
+| Path | Purpose |
+| --- | --- |
+| `Application/Dashboard/DashboardModels.cs` | Read-only snapshot and per-widget projections. |
+| `Application/Repositories/IDashboardRepository.cs` | The documented read-only aggregate port. |
+| `Application/Dashboard/DashboardUseCases.cs` | `GetDashboardSnapshotUseCase`, month/week filling and setup-step assembly. |
+| `Infrastructure/Persistence/Repositories/DashboardRepository.cs` | Grouped/counted EF queries for sessions, absences, revenue, week attendance and level distribution. |
+| `Desktop/ViewModels/DashboardModels.cs` | Localized display records (`DashboardStatItem`, `DashboardSessionRow`, `DashboardAlertRow`, `DashboardQuickAction`, `DashboardSetupStepItem`) and `DashboardLayout`. |
+| `Desktop/ViewModels/DashboardViewModel.cs` | Snapshot load, computed labels, responsive columns, commands, language/license refresh, `Dispose`. |
+| `Desktop/Views/DashboardPage.xaml(.cs)` | Command center markup, page-local `Dashboard.CardButton` / `Dashboard.GlyphTile` / session template, load-on-first-display and width feedback. |
+
+### Rules added in D4
+
+- A design-phase screen may add a read-only aggregate repository/use case only
+  when no existing query can serve it; it must have no write method and no
+  license guard, and it must be documented in this file.
+- The dashboard never formats money, rates or counters in XAML: the ViewModel
+  produces every string, tone and navigation target, and the view only binds.
+- A clickable card is one `Button` wrapping the D3 component (focus ring,
+  hover/pressed state, `AutomationProperties.Name`), never a nested interactive
+  surface inside the component.
+- The layout column counts live in `DashboardLayout`; a screen must not
+  hardcode a `UniformGrid.Columns` value that cannot collapse to one.
+- An empty chart is empty (`Values`/`Labels`/`Summary` blank), not a zero line.
+
+## Design System (Phase D5 - students and groups)
+
+- **Scope**: Phase D5 redesigns the Students and Groups destinations and their
+  sub-pages on the D1 tokens, the D2 shell and the D3 components: the student
+  list (table/cards, filter chips, bulk actions, master-detail panel), the
+  shared student form in a `SidePanel`, the five-tab student file, the card and
+  bulk-QR pages with zoom, the group list (cards/table, group-by level or
+  teacher), the group form, the group file (roster + compact timetable), the
+  interactive weekly schedule with session generation, and the enrollment board
+  with its capacity warning. No Domain, Application use case, schema, licensing
+  or `ILicenseGuard` rule changed; the ViewModels only gained display state,
+  filtering and navigation commands.
+- **Students list**: a `PageHeader` (breadcrumb `menu.students`), a filter card
+  with `SearchBox`, the level/grade/group/status selectors, the sort selector,
+  the descending switch, the include-inactive switch, the fee-pending chip, the
+  table/cards toggle and the add button. Instant search reloads through the
+  existing `StudentListQuery`; the ViewModel keeps `_allItems` for the card
+  projection and the chips.
+- **Filter chips**: `StudentFilterChip(Kind, Label)` is one removable chip per
+  active filter (`search`, `level`, `grade`, `group`, `status`, `fee`).
+  `ActiveFilters` is rebuilt on every load, `ClearFilterCommand` clears exactly
+  one kind, `ClearFiltersCommand` resets search and the fee filter, and
+  `HasActiveFilters` hides the chip row when nothing is filtered. The
+  "fee pending" chip replaces a debt filter, because arrears are computed by the
+  finance phase and the list only knows `RegistrationFee > 0`.
+- **Student views**: `StudentViewMode` (Table/Cards) drives `IsTableView` /
+  `IsCardView`. The table is the D3 `DataTable` (search, density, column
+  chooser, pager, detail panel, bulk bar, selection snapshot into
+  `SelectedRows`); the card view is a virtualizing `ListBox` of
+  `StudentCardItem` (`Avatar`, full name, placement, guardian, fee, status
+  badge). Double-clicking a row raises `ItemActivatedCommand` → details page.
+- **Bulk actions**: `SelectedRows` feeds `HasBulkSelection` and
+  `SelectedCountText` (`common.selected` with `{count}`). `PrintSelectedQr`
+  navigates to `StudentsQrPrintPage` and calls
+  `StudentsQrPrintViewModel.InitializeAsync(ids)`; `MessageGuardians` resolves
+  each selected student's guardian phone through
+  `GetStudentDetailsUseCase`, then asks `ISmsLauncher` to open the `sms:` URI
+  with a localized body. No phone is `students.messageNoPhone`; a refused
+  launcher is `students.messageFailed`.
+- **Student form**: the shared `StudentFormView` lives inside a `SidePanel`
+  (`PanelContent` + `ActionsContent`), so the list stays visible. The form uses
+  `FormSection`/`FormField` and shows inline errors (`HasFirstNameError`,
+  `HasLastNameError`, `HasGuardianError`, `HasFeeError`) from
+  `ValidateEditor()` before any use case runs; the guardian section
+  appears when a contact is typed, and the save remains a guarded write.
+- **Student file**: `StudentDetailsPage` shows the `Avatar`, code, QR image,
+  status badge and placement in one identity card, then five tabs - overview,
+  groups, finance, attendance, homework. Every tab has an honest `EmptyState`
+  when its collection is empty; the homework tab states that no homework is
+  recorded (`students.noHomework`) instead of showing a fake link, because the
+  homework data lives on the Phase 7 screens.
+- **Card and QR**: `StudentCardPage` keeps the existing preview/print/save flow
+  and adds zoom (`ZoomIn`/`ZoomOut`/`ResetZoom`, 40-200 %, `students.zoom`) as a
+  `LayoutTransform`, so the image stays crisp. `StudentsQrPrintPage` adds the
+  same zoom plus a column-count selector, and each tile keeps a `Viewbox` so the
+  QR never clips. A card-template chooser is deliberately not implemented: the
+  card layout is still the single Phase 5 template.
+- **Groups list**: `GroupViewMode` (Table/Cards) and `GroupGrouping`
+  (None/Level/Teacher) drive the same surface. `GroupCardItem` carries the
+  subject, the teacher, `CapacityText`/`CapacityPercent` (rendered by
+  `CapacityBar`), the schedule badge (`groups.slotsBadge` / `groups.noSlotsShort`
+  with `StatusTone.Info` / `Neutral`) and the active badge. `GroupSection` is one
+  section per level or teacher, or a single untitled section when grouping is
+  off, so the view always binds `Sections`. Cards are non-clickable `Border`s
+  with explicit Details/Schedule/Enroll/Edit buttons, so a click never has an
+  ambiguous target; the table view stays on the virtualizing `DataTable`.
+- **Group form**: `GroupFormView` in a `SidePanel`, with `FormSection`/`FormField`
+  and inline errors from `ValidateEditor()` (`HasNameError`, `HasGradeError`,
+  `HasSubjectError`, `HasCapacityError`, `HasFeeError`). The grade list drives
+  the subject list through `grade_subjects`; switching the grade clears and
+  reloads the selection, and `groups.noGrades` explains an empty academic
+  structure instead of showing an empty ComboBox.
+- **Group file**: `GroupDetailsPage` has the identity/capacity card (Avatar,
+  status badge, `CapacityBar`, attendance rate), a roster `DataGrid`, a compact
+  read-only `WeekScheduleGrid`, and the attendance tab with the Phase 7
+  shortcuts (`OpenAttendanceCommand`, `OpenHomeworkCommand`). The grid is built
+  from `DayLabels` + `WeekScheduleItems` by `RebuildGrid`, never by the view.
+- **Interactive schedule**: `GroupSchedulePage` hosts an editable
+  `WeekScheduleGrid`. Clicking an empty cell calls `RequestSlot(day, start)`
+  (one-hour default, editor opens pre-filled); double-clicking a slot calls
+  `ActivateSlot(item)` (editor in edit mode); dragging a slot raises `SlotMoved`
+  → `MoveSlotAsync`, which validates the range, asks
+  `GetScheduleConflictsUseCase`, and either saves directly or opens the D3
+  `Dialog` conflict warning (`SameGroup` / `SameTeacher` lines, Proceed/Cancel).
+  `groups.gridHint` explains the gestures. `GenerateSessionsCommand` calls
+  `GenerateSessionsUseCase` for the trusted local day and reports
+  created/existing/none through `groups.generationCreated` and the existing
+  keys. The day list below the grid keeps the per-slot edit/delete actions.
+- **Enrollment board**: `EnrollmentPage` shows the group identity card with a
+  `CapacityBar`, a `Banner.Warning` bound to `ShowCapacityWarning`, a
+  `SearchBox` for quick add (`SearchCommand`), and two `DataGrid`s (available /
+  enrolled) with `EmptyState` overlays. Capacity is still a warning: the
+  ViewModel asks for confirmation at `ActiveEnrollments >= MaxStudents` and
+  never blocks the write.
+- **RTL**: the shell owns `FlowDirection`; the D5 pages never set it. Every
+  directional glyph (Back, Export) carries
+  `behaviors:RtlMirrorBehavior.IsEnabled="True"`, and a test asserts it on the
+  four pages that draw one.
+
+### Files (Phase D5)
+
+| Path | Purpose |
+| --- | --- |
+| `Desktop/ViewModels/StudentsViewModel.cs` | View mode, chips, card projection, bulk selection, bulk QR/message, inline validation. |
+| `Desktop/ViewModels/StudentDetailsViewModel.cs` | Identity card text/tone, five tab collections, honest homework empty state. |
+| `Desktop/ViewModels/StudentCardViewModel.cs` / `StudentsQrPrintViewModel.cs` | Zoom state; the QR page renders an explicit id selection. |
+| `Desktop/ViewModels/GroupsViewModel.cs` | View mode, grouping sections, card projection, inline validation. |
+| `Desktop/ViewModels/GroupScheduleViewModel.cs` | Interactive grid, request/activate/move, conflict dialog, session generation. |
+| `Desktop/ViewModels/GroupDetailsViewModel.cs` | Identity/capacity text, compact grid, attendance/homework shortcuts. |
+| `Desktop/ViewModels/EnrollmentViewModel.cs` | Capacity warning surface and the quick-add search command. |
+| `Desktop/Views/StudentsPage.xaml(.cs)` | Table/cards, filter chips, bulk bar, master-detail `SidePanel`. |
+| `Desktop/Views/StudentFormView.xaml` / `GroupFormView.xaml` | Shared forms with `FormSection`/`FormField` and inline errors. |
+| `Desktop/Views/StudentDetailsPage.xaml` / `StudentCardPage.xaml` / `StudentsQrPrintPage.xaml` | Five-tab file, zoomed card, zoomed QR sheet. |
+| `Desktop/Views/GroupsPage.xaml(.cs)` | Table/cards, grouped sections, `SidePanel` form. |
+| `Desktop/Views/GroupDetailsPage.xaml` / `GroupSchedulePage.xaml(.cs)` | Group file and the editable weekly grid with its dialogs. |
+| `Desktop/Views/EnrollmentPage.xaml` | Capacity card, quick add, two roster columns. |
+| `Tests/Students/StudentListD5Tests.cs` | 11 list/bulk/validation/card tests. |
+| `Tests/Groups/GroupListD5Tests.cs` | 14 card/grouping/grid/enrollment tests. |
+
+### Rules added in D5
+
+- A list screen offers both presentations through a ViewModel flag; the table
+  keeps `DataTable` (virtualizing, paged) and the card list keeps a virtualizing
+  `ListBox`, so a 1,000-student school does not materialize 1,000 controls.
+- A removable chip is `StudentFilterChip` + `ClearFilterCommand`; a screen must
+  not clear a filter by assigning every property in XAML.
+- Bulk actions never run a write without the license gate: the QR page is a
+  read, and the message action only opens the shell launcher.
+- The shared form lives in `SidePanel.ActionsContent`; `StudentFormView` and
+  `GroupFormView` own no commands, so their save/cancel come from the host page.
+- Inline validation mirrors the Application validator (required, capacity
+  1..500, fee >= 0) and must never replace it; the use case remains the
+  authority.
+- Group cards are non-clickable `Border`s with explicit buttons; a card is never
+  one giant `Button` containing other buttons.
+- The interactive grid raises `SlotRequested`/`SlotActivated`/`SlotMoved`; the
+  conflict is a warning and only the user's confirmation saves the slot.
+- Capacity stays advisory everywhere (`CapacityBar`, `Banner.Warning`,
+  confirmation), never a block.
+- The homework tab shows an empty state until the Phase 7 screens own that
+  data; a screen must not invent a homework query for a design phase.
+
 ## Conventions
 
 - Repositories and use cases return `Result<T>`; expected failures are `Failure`
@@ -1304,14 +1546,16 @@ specifically so `Text.Secondary` on a selected row still reaches AA.
 
 ## Next phases
 
-Screen redesign on top of the Phase D1 foundation and the Phase D3 components
-(Phase D2 rebuilt the shell and navigation, Phase D3 shipped the reusable
-controls; the feature screens are next), then Finance (payments, dues,
-registration fee and 3/6/12-month discounts, exemptions, extra fees), the
-dashboard, settings, the notifications center, SMS-template management and the
-documented simple login screen. QuestPDF reports beyond the student card, the
-group report and the attendance report remain later work. Do not add these to
-Phases 1-7 or to Phases D1-D3.
+Screen redesign continues on top of the Phase D1 foundation and the Phase D3
+components (Phase D2 rebuilt the shell and navigation, Phase D3 shipped the
+reusable controls, Phase D4 rebuilt the dashboard as the daily command center,
+Phase D5 rebuilt the Students and Groups screens). The remaining feature screens
+- Academics, Attendance, Homework, Finance, Settings - are next, then the
+Finance feature itself (payments, dues, registration fee and 3/6/12-month
+discounts, exemptions, extra fees), the notifications center, SMS-template
+management and the documented simple login screen. QuestPDF reports beyond the
+student card, the group report and the attendance report remain later work. Do
+not add these to Phases 1-7 or to Phases D1-D5.
 
 ## Phase 2 results (actual)
 
@@ -1637,3 +1881,134 @@ Phases 1-7 or to Phases D1-D3.
   the 28-table schema, licensing and `ILicenseGuard` are untouched.
 - **Dependency**: `LiveChartsCore.SkiaSharpView.WPF` 2.0.0-rc3.3 (Desktop only),
   resolving to the same `SkiaSharp` 2.88.8 as Infrastructure.
+
+## Phase D4 results (actual)
+
+- **Build**: `dotnet build SchoolManagement.sln -c Debug` -> succeeded
+  (0 warnings, 0 errors).
+- **Tests**: `dotnet test SchoolManagement.sln -c Debug --no-build` -> 1218
+  passed, 0 failed, 0 skipped (1160 from Phase D3 + 58 new dashboard tests).
+  `FullyQualifiedName~Dashboard` reports 58 passed. New files:
+  - `Dashboard/DashboardLayoutTests.cs` - the pure 3/2/1, 4/2/1 and 2/1
+    thresholds, plus the 320 px single-column floor and the unusable-width
+    (0, negative, NaN, infinity) no-op.
+  - `Dashboard/DashboardViewModelTests.cs` - the five stat cards and their
+    priority order, the revenue-only trend, greeting by time of day and school
+    name, localized date, sorted session timeline with per-row rules, the
+    attention priority order and tones, the quiet-day all-clear, the new-school
+    guide versus a populated school, the three charts (including the seven-day
+    attendance fill), the localized error state, load-once, refresh, responsive
+    rearrangement, language refresh, every navigation command, closed-session
+    refusal, the activation dialog for a license alert, null parameters and
+    idempotent `Dispose`.
+  - `Dashboard/DashboardRepositoryTests.cs` - real SQLite coverage of today's
+    sessions projection, absence alerts (limit boundary and non-positive
+    limit), the six-month revenue grouping, the weekly attendance aggregate
+    (school day 1 and 4) and the level distribution; the last test seeds 500
+    active students, 25 groups, 1,000 enrollments, 150 sessions, 1,500
+    attendance rows and 1,800 payments, warms the EF model once, then asserts
+    the whole snapshot loads in under 300 ms.
+- **Failing-test proofs / fixes**:
+  - `Charts_are_built_from_the_snapshot` first expected a two-point attendance
+    series, but `FillWeek` deliberately always returns seven school days. The
+    assertion now expects `{90, 50, 0, 0, 0, 0, 0}` (the two seeded days keep
+    their rate) instead of weakening the production behaviour.
+  - `The_whole_snapshot_loads_in_under_300ms_on_large_data` found
+    `TodaySessionCount = 0`: the fixture clock is 31 October while the seed
+    writes sessions on 4 November. The use case clock is now pinned to the
+    seeded day, and the test additionally asserts the month outstanding
+    (700,000) and the 500 students in arrears.
+- **Test-infrastructure updates**: `ShellViewModelTests.CreateNavigationProvider`
+  and `NavigationServiceTests.CreateProvider` now register
+  `IDashboardRepository`, `ISettingsRepository`,
+  `GetDashboardSnapshotUseCase` and the `DashboardViewModel` dependencies, so
+  resolving the dashboard through `NavigationService` keeps working in every
+  shell test.
+- **Smoke test (desktop)**: Deleted `bootstrap.log`, started the debug build,
+  kept it alive for 8 seconds, then `Stop-Process -Force`. The process stayed
+  alive and **no `bootstrap.log` was written**, so the new page, the chart
+  wrapper and the snapshot query load on the real startup path.
+- **Schema / domain**: no schema change. The only non-Desktop additions are the
+  documented read-only `IDashboardRepository` / `DashboardRepository` and
+  `GetDashboardSnapshotUseCase`. Domain, Application writes, the 28-table
+  schema, licensing and `ILicenseGuard` are untouched.
+- **Dependencies**: none added in D4 (the charts reuse the D3
+  `LiveChartsCore.SkiaSharpView.WPF` 2.0.0-rc3.3 reference).
+
+## Phase D5 results (actual)
+
+- **Build**: `dotnet build SchoolManagement.sln -c Debug` -> succeeded
+  (0 warnings, 0 errors).
+- **Tests**: `dotnet test SchoolManagement.sln -c Debug --no-build` -> 1247
+  passed, 0 failed, 0 skipped (1218 from Phase D4 + 29 new cases: 25 new D5
+  tests and the 4-case RTL theory added to `GroupViewBindingTests`). New files:
+  - `Students/StudentListD5Tests.cs` - 11 tests: table/cards toggle, the
+    fee-pending filter hiding paid rows and adding a chip, clearing one chip
+    while the others stay, `ClearFilters` resetting search and the fee filter,
+    the bulk selection count/bar, the bulk QR navigation, the guardian message
+    reaching `ISmsLauncher` with the resolved phone, the missing-phone failure
+    without a launcher call, the empty-form inline errors before the use case,
+    the guardian/fee validation pair, and the card projection (initials,
+    placement, fee text, status tone).
+  - `Groups/GroupListD5Tests.cs` - 14 tests: table/cards toggle, card
+    projection (subject, teacher, `2/30`, 7 %, schedule badge/tone, active
+    badge), the no-schedule badge, grouping by level, grouping by teacher with
+    a teacherless section, no grouping producing one untitled section, the
+    editor validation (name/subject, capacity 501 vs 500, negative fee),
+    click-to-add on an empty cell pre-filling 10:00-11:00, moving a slot through
+    a conflict (dialog, no save before confirmation, save after), moving without
+    a conflict (direct save), an inverted moved range rejected before any query,
+    session generation reporting the created count on the trusted day, the group
+    file's compact grid and its Attendance/Homework shortcuts, and the
+    enrollment capacity warning at 30/30.
+- **UI regressions caught and fixed**:
+  - `EnrollmentPage.xaml` bound `SearchCommand`, which `EnrollmentViewModel` did
+    not expose (a silent WPF no-op). The quick-add search command was added and
+    the static binding test now covers the page.
+  - The static binding tests expected every view, including
+    `StudentFormView.xaml`/`GroupFormView.xaml`, to own its `...Command`
+    bindings. The shared forms deliberately delegate save/cancel to the host
+    page, so the theory now excludes them and a dedicated fact asserts
+    `StudentsPage.xaml`/`GroupsPage.xaml` bind `SaveEditorCommand` and
+    `CancelEditorCommand`.
+  - The four D5 pages draw a directional glyph (Back or Export) and initially
+    had no mirror behaviour; they now carry
+    `behaviors:RtlMirrorBehavior.IsEnabled="True"` and the new RTL theory fails
+    if a page sets `FlowDirection` or drops the behaviour.
+- **Test-infrastructure update**: `NavigationServiceTests.CreateProvider` now
+  registers `ISmsLauncher`, the new `StudentsViewModel` constructor dependency;
+  without it three `NavigationServiceTests` failed with
+  `Unable to resolve service for type '...ISmsLauncher'`. The student and group
+  harnesses were extended (`Sms`, `RenderStudentQrUseCase`,
+  `GenerateSessionsUseCase` + `Clock`) so the new ViewModel surfaces are
+  exercised through the real code.
+- **Localization**: the D5 blocks add 30 `students.*` keys, 26 `groups.*` keys,
+  4 `enrollment.*` keys and 2 `common.*` keys (`common.filters`,
+  `common.selected`); the ar/en/fr files stay identical (`students=141`,
+  `groups=90`, `enrollment=25`, `common=86`) and the parity tests pass. A
+  trailing comma in one JSON file was found and fixed by the parity check.
+  Breadcrumbs use `menu.students`/`menu.groups` because `nav.students` and
+  `nav.groups` do not exist.
+- **Deliberate scope decisions**:
+  - The "debt" filter became a "fee pending" chip (`RegistrationFee > 0`),
+    because real arrears belong to the finance phase and no list column can
+    compute them.
+  - The student homework tab shows an honest empty state instead of a fake link;
+    the Phase 7 screens own that data.
+  - The card-template chooser was not implemented; the card keeps the single
+    Phase 5 layout and gains zoom instead. The QR sheet gains zoom and a column
+    count.
+  - The group card list is an `ItemsControl` + `WrapPanel` (a `WrapPanel` cannot
+    virtualize) inside a `ScrollViewer`, while the table view keeps the
+    virtualizing `DataTable`; the student card list is a virtualizing `ListBox`.
+- **Smoke test (desktop)**: Deleted `bootstrap.log`, started the debug build,
+  kept it alive for 8 seconds, then `Stop-Process -Force`. The process stayed
+  alive and **no `bootstrap.log` was written**, so the rewritten pages, the
+  `SidePanel` forms, the editable weekly grid and the card lists load on the
+  real startup path.
+- **Schema / domain**: no change - Phase D5 touches only
+  `SchoolManagement.Desktop` (Views, ViewModels display state, styles) plus
+  `TranslationKeys`, the three JSON files and the tests. Domain, Application use
+  cases, Infrastructure, the 28-table schema, licensing and `ILicenseGuard` are
+  untouched.
+- **Dependencies**: none added in D5.

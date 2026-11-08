@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
+using SchoolManagement.Application.Dashboard;
 using SchoolManagement.Application.Licensing;
 using SchoolManagement.Application.Groups;
 using SchoolManagement.Application.Localization;
@@ -115,6 +116,10 @@ public sealed class NavigationServiceTests
         services.AddSingleton(Substitute.For<IFileDialogService>());
         services.AddSingleton(Substitute.For<IPdfPrintService>());
 
+        // Phase D5: the student list sends a bulk message through the shell
+        // launcher, so the ViewModel needs the port here as well.
+        services.AddSingleton(Substitute.For<ISmsLauncher>());
+
         services.AddTransient<GetAcademicLevelsUseCase>();
         services.AddTransient<GetGradesUseCase>();
         services.AddTransient<GetSubjectsUseCase>();
@@ -169,6 +174,13 @@ public sealed class NavigationServiceTests
         services.AddTransient<GenerateSessionsUseCase>();
 
         services.AddSingleton<INavigationService, NavigationService>();
+
+        // Phase D4: the dashboard loads one read-only snapshot, so its use case
+        // and the aggregate repository must be resolvable here as well.
+        services.AddSingleton(Substitute.For<IDashboardRepository>());
+        services.AddSingleton(Substitute.For<ISettingsRepository>());
+        services.AddTransient<GetDashboardSnapshotUseCase>();
+
         services.AddTransient<DashboardViewModel>();
         services.AddTransient<StudentsViewModel>();
         services.AddTransient<StudentDetailsViewModel>();

@@ -76,6 +76,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<INotificationRepository, NotificationRepository>();
         services.AddSingleton<ISettingsRepository, SettingsRepository>();
         services.AddSingleton<IReferenceDataRepository, ReferenceDataRepository>();
+        services.AddSingleton<IDashboardRepository, DashboardRepository>();
         services.AddSingleton<IAcademicLevelRepository, AcademicLevelRepository>();
         services.AddSingleton<IGradeRepository, GradeRepository>();
         services.AddSingleton<ISubjectRepository, SubjectRepository>();

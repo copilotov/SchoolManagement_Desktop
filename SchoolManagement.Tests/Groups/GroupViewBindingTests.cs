@@ -20,7 +20,6 @@ public sealed class GroupViewBindingTests
     public static TheoryData<string, Type> Views => new()
     {
         { "GroupsPage.xaml", typeof(GroupsViewModel) },
-        { "GroupFormView.xaml", typeof(GroupsViewModel) },
         { "GroupDetailsPage.xaml", typeof(GroupDetailsViewModel) },
         { "GroupSchedulePage.xaml", typeof(GroupScheduleViewModel) },
         { "EnrollmentPage.xaml", typeof(EnrollmentViewModel) },
@@ -57,6 +56,17 @@ public sealed class GroupViewBindingTests
     }
 
     [Fact]
+    public void The_group_list_hosts_the_shared_form_commands()
+    {
+        // Phase D5: the form view owns no command; the side panel on the list
+        // page carries Save and Cancel.
+        var xaml = ReadView("GroupsPage.xaml");
+
+        xaml.Should().Contain("Command=\"{Binding SaveEditorCommand}\"");
+        xaml.Should().Contain("Command=\"{Binding CancelEditorCommand}\"");
+    }
+
+    [Fact]
     public void The_schedule_editor_keeps_its_keyboard_shortcuts()
     {
         var xaml = ReadView("GroupSchedulePage.xaml");
@@ -74,6 +84,21 @@ public sealed class GroupViewBindingTests
         xaml.Should().Contain("Columns=\"{Binding ColumnCount}\"");
         xaml.Should().Contain("Rows=\"{Binding RowCount}\"");
         xaml.Should().Contain("ItemsSource=\"{Binding Cells}\"");
+    }
+
+    [Theory]
+    [InlineData("StudentsPage.xaml")]
+    [InlineData("GroupDetailsPage.xaml")]
+    [InlineData("GroupSchedulePage.xaml")]
+    [InlineData("EnrollmentPage.xaml")]
+    public void The_phase_d5_pages_let_the_shell_mirror_them_in_rtl(string fileName)
+    {
+        // Phase D5: the direction belongs to the shell, and a directional glyph
+        // must opt into the mirror behaviour instead of being drawn twice.
+        var xaml = ReadView(fileName);
+
+        xaml.Should().NotContain("FlowDirection=\"LeftToRight\"");
+        xaml.Should().Contain("behaviors:RtlMirrorBehavior.IsEnabled=\"True\"");
     }
 
     private static string ReadView(string fileName)

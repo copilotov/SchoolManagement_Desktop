@@ -92,6 +92,9 @@ public static class ApplicationServiceCollectionExtensions
         services.AddTransient<Homeworks.SaveHomeworkUseCase>();
         services.AddTransient<Homeworks.SetHomeworkSubmissionStatusUseCase>();
 
+        // Phase D4: read-only dashboard snapshot (no write, no license guard).
+        services.AddTransient<Dashboard.GetDashboardSnapshotUseCase>();
+
         return services;
     }
 }

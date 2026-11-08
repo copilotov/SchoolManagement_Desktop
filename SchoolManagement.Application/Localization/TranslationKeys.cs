@@ -39,6 +39,8 @@ public static class TranslationKeys
         public const string No = "common.no";
         public const string Edit = "common.edit";
         public const string Details = "common.details";
+        public const string Filters = "common.filters";
+        public const string Selected = "common.selected";
     }
 
     public static class Menu
@@ -65,6 +67,73 @@ public static class TranslationKeys
         public const string TodaySessions = "dashboard.todaySessions";
         public const string Outstanding = "dashboard.outstanding";
         public const string QuickActions = "dashboard.quickActions";
+        public const string GreetingMorning = "dashboard.greetingMorning";
+        public const string GreetingAfternoon = "dashboard.greetingAfternoon";
+        public const string GreetingEvening = "dashboard.greetingEvening";
+        public const string GreetingWithName = "dashboard.greetingWithName";
+        public const string Today = "dashboard.today";
+        public const string Overview = "dashboard.overview";
+        public const string MonthRevenue = "dashboard.monthRevenue";
+        public const string Attention = "dashboard.attention";
+        public const string NoAttention = "dashboard.noAttention";
+        public const string NoAttentionHint = "dashboard.noAttentionHint";
+        public const string Analytics = "dashboard.analytics";
+        public const string RevenueTrend = "dashboard.revenueTrend";
+        public const string RevenueTrendHint = "dashboard.revenueTrendHint";
+        public const string WeeklyAttendance = "dashboard.weeklyAttendance";
+        public const string WeeklyAttendanceHint = "dashboard.weeklyAttendanceHint";
+        public const string LevelDistribution = "dashboard.levelDistribution";
+        public const string LevelDistributionHint = "dashboard.levelDistributionHint";
+        public const string NoLevel = "dashboard.noLevel";
+        public const string SetupTitle = "dashboard.setupTitle";
+        public const string SetupHint = "dashboard.setupHint";
+        public const string SetupLevels = "dashboard.setupLevels";
+        public const string SetupSubjects = "dashboard.setupSubjects";
+        public const string SetupTeachers = "dashboard.setupTeachers";
+        public const string SetupGroups = "dashboard.setupGroups";
+        public const string SetupStudents = "dashboard.setupStudents";
+        public const string SetupDone = "dashboard.setupDone";
+        public const string SetupPending = "dashboard.setupPending";
+        public const string SetupOpen = "dashboard.setupOpen";
+        public const string SetupCount = "dashboard.setupCount";
+        public const string NewSchoolTitle = "dashboard.newSchoolTitle";
+        public const string NewSchoolHint = "dashboard.newSchoolHint";
+        public const string ViewAll = "dashboard.viewAll";
+        public const string TakeAttendance = "dashboard.takeAttendance";
+        public const string AttendanceDone = "dashboard.attendanceDone";
+        public const string NoSessionsToday = "dashboard.noSessionsToday";
+        public const string NoSessionsHint = "dashboard.noSessionsHint";
+        public const string SessionStudents = "dashboard.sessionStudents";
+        public const string AlertArrearsTitle = "dashboard.alertArrearsTitle";
+        public const string AlertArrearsBody = "dashboard.alertArrearsBody";
+        public const string ArrearsCount = "dashboard.arrearsCount";
+        public const string AlertAbsenceTitle = "dashboard.alertAbsenceTitle";
+        public const string AlertAbsenceBody = "dashboard.alertAbsenceBody";
+        public const string AlertMissingAttendanceTitle = "dashboard.alertMissingAttendanceTitle";
+        public const string AlertMissingAttendanceBody = "dashboard.alertMissingAttendanceBody";
+        public const string AlertLicenseTitle = "dashboard.alertLicenseTitle";
+        public const string AlertLicenseBody = "dashboard.alertLicenseBody";
+        public const string CategoryPayments = "dashboard.categoryPayments";
+        public const string CategoryStudents = "dashboard.categoryStudents";
+        public const string CategoryAttendance = "dashboard.categoryAttendance";
+        public const string CategoryLicense = "dashboard.categoryLicense";
+        public const string OpenFinance = "dashboard.openFinance";
+        public const string OpenStudents = "dashboard.openStudents";
+        public const string OpenAttendance = "dashboard.openAttendance";
+        public const string RenewLicense = "dashboard.renewLicense";
+        public const string QuickNewStudent = "dashboard.quickNewStudent";
+        public const string QuickNewStudentHint = "dashboard.quickNewStudentHint";
+        public const string QuickPayment = "dashboard.quickPayment";
+        public const string QuickPaymentHint = "dashboard.quickPaymentHint";
+        public const string QuickAttendance = "dashboard.quickAttendance";
+        public const string QuickAttendanceHint = "dashboard.quickAttendanceHint";
+        public const string QuickReport = "dashboard.quickReport";
+        public const string QuickReportHint = "dashboard.quickReportHint";
+        public const string RevenueSummary = "dashboard.revenueSummary";
+        public const string AttendanceSummary = "dashboard.attendanceSummary";
+        public const string LevelSummary = "dashboard.levelSummary";
+        public const string NoChartData = "dashboard.noChartData";
+        public const string Refresh = "dashboard.refresh";
     }
 
     public static class Students
@@ -163,6 +232,38 @@ public static class TranslationKeys
         public const string AttendanceTabEmpty = "students.attendanceTabEmpty";
         public const string CodeHint = "students.codeHint";
         public const string ImportHint = "students.importHint";
+
+        // Phase D5 - list views, bulk actions and the redesigned student file.
+        public const string ViewTable = "students.viewTable";
+        public const string ViewCards = "students.viewCards";
+        public const string ActiveFilters = "students.activeFilters";
+        public const string ClearFilters = "students.clearFilters";
+        public const string FeePendingFilter = "students.feePendingFilter";
+        public const string FeePendingChip = "students.feePendingChip";
+        public const string BulkQr = "students.bulkQr";
+        public const string BulkMessage = "students.bulkMessage";
+        public const string MessageBody = "students.messageBody";
+        public const string MessageNoPhone = "students.messageNoPhone";
+        public const string MessageOpened = "students.messageOpened";
+        public const string MessageFailed = "students.messageFailed";
+        public const string Overview = "students.overview";
+        public const string Homework = "students.homework";
+        public const string HomeworkTabEmpty = "students.homeworkTabEmpty";
+        public const string NoHomework = "students.noHomework";
+        public const string TotalPaid = "students.totalPaid";
+        public const string AttendanceRateLabel = "students.attendanceRate";
+        public const string QuickProfile = "students.quickProfile";
+        public const string NoSelection = "students.noSelection";
+        public const string Zoom = "students.zoom";
+        public const string CardTemplate = "students.cardTemplate";
+        public const string CardTemplateStandard = "students.cardTemplateStandard";
+        public const string Placement = "students.placement";
+        public const string Guardian = "students.guardian";
+        public const string ValidationFirstName = "students.validationFirstName";
+        public const string ValidationLastName = "students.validationLastName";
+        public const string ValidationGuardian = "students.validationGuardian";
+        public const string ValidationFee = "students.validationFee";
+        public const string OpenFile = "students.openFile";
     }
 
     public static class Groups
@@ -230,6 +331,28 @@ public static class TranslationKeys
         public const string SortGrade = "groups.sortGrade";
         public const string SortCapacity = "groups.sortCapacity";
         public const string SortFee = "groups.sortFee";
+
+        // Phase D5 - card/table views, grouping and the interactive schedule.
+        public const string ViewTable = "groups.viewTable";
+        public const string ViewCards = "groups.viewCards";
+        public const string GroupBy = "groups.groupBy";
+        public const string GroupByNone = "groups.groupByNone";
+        public const string GroupByLevel = "groups.groupByLevel";
+        public const string GroupByTeacher = "groups.groupByTeacher";
+        public const string NoTeacherSection = "groups.noTeacherSection";
+        public const string CompactTimetable = "groups.compactTimetable";
+        public const string Shortcuts = "groups.shortcuts";
+        public const string OpenAttendance = "groups.openAttendance";
+        public const string OpenHomework = "groups.openHomework";
+        public const string NoGroupsSection = "groups.noGroupsSection";
+        public const string SlotsBadge = "groups.slotsBadge";
+        public const string GridHint = "groups.gridHint";
+        public const string MoveSaved = "groups.moveSaved";
+        public const string NameRequired = "groups.nameRequired";
+        public const string GradeRequired = "groups.gradeRequired";
+        public const string SubjectRequired = "groups.subjectRequired";
+        public const string CapacityInvalid = "groups.capacityInvalid";
+        public const string FeeInvalid = "groups.feeInvalid";
         public const string ConflictTitle = "groups.conflictTitle";
         public const string ConflictMessage = "groups.conflictMessage";
         public const string ConflictSameGroup = "groups.conflictSameGroup";
@@ -261,6 +384,12 @@ public static class TranslationKeys
         public const string CapacityExceededMessage = "enrollment.capacityExceededMessage";
         public const string CapacityExceededWarning = "enrollment.capacityExceededWarning";
         public const string Group = "enrollment.group";
+
+        // Phase D5 - quick add board.
+        public const string QuickAdd = "enrollment.quickAdd";
+        public const string AvailableHint = "enrollment.availableHint";
+        public const string SearchPlaceholder = "enrollment.searchPlaceholder";
+        public const string CapacityWarning = "enrollment.capacityWarning";
     }
 
     public static class Schedule

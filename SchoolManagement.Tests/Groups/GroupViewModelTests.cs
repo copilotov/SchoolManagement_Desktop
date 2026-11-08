@@ -213,9 +213,11 @@ internal sealed class GroupVmHarness
         new GetScheduleConflictsUseCase(ScheduleRepository, Groups),
         new SaveScheduleSlotUseCase(ScheduleRepository, _guard),
         new DeleteScheduleSlotUseCase(ScheduleRepository, _guard),
+        new GenerateSessionsUseCase(Sessions, _guard),
         Localization,
         Dialogs,
         Navigation,
+        Clock,
         License);
 
     public EnrollmentViewModel CreateEnrollment() => new(

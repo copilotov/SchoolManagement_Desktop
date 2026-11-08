@@ -1,102 +1,99 @@
 <UserControl x:Class="SchoolManagement.Desktop.Views.GroupFormView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization">
-    <StackPanel>
-        <TextBlock Text="{Binding EditorTitle}"
-                   Style="{StaticResource SectionHeader}"
-                   Margin="0,0,0,12" />
+             xmlns:controls="clr-namespace:SchoolManagement.Desktop.Controls"
+             xmlns:vm="clr-namespace:SchoolManagement.Desktop.ViewModels"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:GroupsViewModel, IsDesignTimeCreatable=False}"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
 
-        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="460">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="24" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+    <!-- =====================================================================
+         Phase D5 - the shared group form, hosted in the list side panel.
 
-                <StackPanel Grid.Row="0" Grid.ColumnSpan="3">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{loc:Tr groups.name}" Style="{StaticResource FieldLabel}" />
-                        <TextBlock Text="*"
-                                   Style="{StaticResource FieldLabel}"
-                                   Foreground="{DynamicResource Brush.Danger}"
-                                   ToolTip="{loc:Tr common.required}" />
-                    </StackPanel>
-                    <TextBox Text="{Binding EditorName, UpdateSourceTrigger=PropertyChanged}" />
+         The grade drives the subject list through grade_subjects: switching the
+         grade clears the subject selection and reloads the linked subjects, so a
+         group can never be saved with a subject its grade does not teach. The
+         view model validates before the guarded write; a blocked save keeps the
+         form open with the reason already under the field.
+         ===================================================================== -->
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <controls:FormSection Title="{loc:Tr groups.details}">
+            <controls:FormSection.SectionContent>
+                <StackPanel>
+                    <controls:FormField Label="{loc:Tr groups.name}"
+                                        IsRequired="True"
+                                        ErrorText="{Binding NameError}">
+                        <controls:FormField.FieldContent>
+                            <TextBox Text="{Binding EditorName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                        </controls:FormField.FieldContent>
+                    </controls:FormField>
+
+                    <controls:FormField Label="{loc:Tr groups.grade}"
+                                        IsRequired="True"
+                                        ErrorText="{Binding GradeError}"
+                                        Margin="0,12,0,0">
+                        <controls:FormField.FieldContent>
+                            <ComboBox ItemsSource="{Binding Grades}"
+                                      DisplayMemberPath="Label"
+                                      SelectedItem="{Binding SelectedEditorGrade, Mode=TwoWay}" />
+                        </controls:FormField.FieldContent>
+                    </controls:FormField>
+
+                    <TextBlock Style="{StaticResource Component.Hint}"
+                               Foreground="{DynamicResource Warning}"
+                               TextWrapping="Wrap"
+                               Margin="0,6,0,0"
+                               Text="{loc:Tr groups.noGrades}"
+                               Visibility="{Binding HasNoGrades, Converter={StaticResource BoolToVisibility}}" />
+
+                    <controls:FormField Label="{loc:Tr groups.subject}"
+                                        IsRequired="True"
+                                        ErrorText="{Binding SubjectError}"
+                                        Margin="0,12,0,0">
+                        <controls:FormField.FieldContent>
+                            <ComboBox ItemsSource="{Binding Subjects}"
+                                      DisplayMemberPath="Name"
+                                      SelectedItem="{Binding SelectedEditorSubject, Mode=TwoWay}" />
+                        </controls:FormField.FieldContent>
+                    </controls:FormField>
+
+                    <controls:FormField Label="{loc:Tr groups.teacher}"
+                                        Margin="0,12,0,0">
+                        <controls:FormField.FieldContent>
+                            <ComboBox ItemsSource="{Binding Teachers}"
+                                      DisplayMemberPath="Label"
+                                      SelectedItem="{Binding SelectedEditorTeacher, Mode=TwoWay}" />
+                        </controls:FormField.FieldContent>
+                    </controls:FormField>
+
+                    <controls:FormField Label="{loc:Tr groups.maxStudents}"
+                                        ErrorText="{Binding CapacityError}"
+                                        Margin="0,12,0,0">
+                        <controls:FormField.FieldContent>
+                            <TextBox Text="{Binding EditorMaxStudents, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                        </controls:FormField.FieldContent>
+                    </controls:FormField>
+
+                    <controls:FormField Label="{loc:Tr groups.monthlyFee}"
+                                        ErrorText="{Binding FeeError}"
+                                        Margin="0,12,0,0">
+                        <controls:FormField.FieldContent>
+                            <TextBox Text="{Binding EditorMonthlyFee, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                        </controls:FormField.FieldContent>
+                    </controls:FormField>
+
+                    <CheckBox Margin="0,16,0,0"
+                              VerticalAlignment="Center"
+                              IsChecked="{Binding EditorIsActive, Mode=TwoWay}"
+                              Content="{loc:Tr common.active}" />
                 </StackPanel>
-
-                <StackPanel Grid.Row="1" Grid.Column="0">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{loc:Tr groups.grade}" Style="{StaticResource FieldLabel}" />
-                        <TextBlock Text="*"
-                                   Style="{StaticResource FieldLabel}"
-                                   Foreground="{DynamicResource Brush.Danger}"
-                                   ToolTip="{loc:Tr common.required}" />
-                    </StackPanel>
-                    <ComboBox ItemsSource="{Binding Grades}"
-                              DisplayMemberPath="Label"
-                              SelectedItem="{Binding SelectedEditorGrade, Mode=TwoWay}" />
-                    <TextBlock Text="{loc:Tr groups.noGrades}"
-                               Style="{StaticResource PageSubtitle}"
-                               FontSize="11"
-                               TextWrapping="Wrap" />
-                </StackPanel>
-
-                <StackPanel Grid.Row="1" Grid.Column="2">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{loc:Tr groups.subject}" Style="{StaticResource FieldLabel}" />
-                        <TextBlock Text="*"
-                                   Style="{StaticResource FieldLabel}"
-                                   Foreground="{DynamicResource Brush.Danger}"
-                                   ToolTip="{loc:Tr common.required}" />
-                    </StackPanel>
-                    <ComboBox ItemsSource="{Binding Subjects}"
-                              DisplayMemberPath="Name"
-                              SelectedItem="{Binding SelectedEditorSubject, Mode=TwoWay}" />
-                </StackPanel>
-
-                <StackPanel Grid.Row="2" Grid.Column="0">
-                    <TextBlock Text="{loc:Tr groups.teacher}" Style="{StaticResource FieldLabel}" />
-                    <ComboBox ItemsSource="{Binding Teachers}"
-                              DisplayMemberPath="Label"
-                              SelectedItem="{Binding SelectedEditorTeacher, Mode=TwoWay}" />
-                </StackPanel>
-
-                <StackPanel Grid.Row="2" Grid.Column="2">
-                    <TextBlock Text="{loc:Tr groups.maxStudents}" Style="{StaticResource FieldLabel}" />
-                    <TextBox Text="{Binding EditorMaxStudents, UpdateSourceTrigger=PropertyChanged}" />
-                </StackPanel>
-
-                <StackPanel Grid.Row="3" Grid.Column="0">
-                    <TextBlock Text="{loc:Tr groups.monthlyFee}" Style="{StaticResource FieldLabel}" />
-                    <TextBox Text="{Binding EditorMonthlyFee, UpdateSourceTrigger=PropertyChanged}" />
-                </StackPanel>
-
-                <CheckBox Grid.Row="3" Grid.Column="2"
-                          VerticalAlignment="Bottom"
-                          Margin="0,12,0,8"
-                          IsChecked="{Binding EditorIsActive, Mode=TwoWay}"
-                          Content="{loc:Tr common.active}" />
-            </Grid>
-        </ScrollViewer>
-
-        <StackPanel Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="0,18,0,0">
-            <Button Content="{loc:Tr common.cancel}"
-                    Command="{Binding CancelEditorCommand}"
-                    Style="{StaticResource SecondaryButton}"
-                    Margin="0,0,10,0" />
-            <Button Content="{loc:Tr common.save}"
-                    Command="{Binding SaveEditorCommand}"
-                    Style="{StaticResource PrimaryButton}" />
-        </StackPanel>
-    </StackPanel>
+            </controls:FormSection.SectionContent>
+        </controls:FormSection>
+    </ScrollViewer>
 </UserControl>

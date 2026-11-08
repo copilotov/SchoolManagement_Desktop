@@ -8,6 +8,7 @@ using SchoolManagement.Application.Localization;
 using SchoolManagement.Application.Repositories.Models;
 using SchoolManagement.Application.Time;
 using SchoolManagement.Application.UseCases;
+using SchoolManagement.Desktop.Controls;
 using SchoolManagement.Desktop.Services;
 
 namespace SchoolManagement.Desktop.ViewModels;
@@ -17,6 +18,47 @@ public sealed record GroupSortOption(GroupSortField Field, string Label);
 
 /// <summary>One lookup option (grade, teacher, level) of the group form.</summary>
 public sealed record GroupLookupOption(int Id, string Label);
+
+/// <summary>Table or card presentation of the group list.</summary>
+public enum GroupViewMode
+{
+    Table,
+    Cards,
+}
+
+/// <summary>How the card list is sectioned.</summary>
+public enum GroupGrouping
+{
+    None,
+    Level,
+    Teacher,
+}
+
+/// <summary>One entry of the "group by" ComboBox; the label follows the language.</summary>
+public sealed record GroupGroupingOption(GroupGrouping Value, string Label);
+
+/// <summary>Display-only projection of a group row for the card list.</summary>
+public sealed record GroupCardItem(
+    GroupSummary Item,
+    string Name,
+    string Placement,
+    string SubjectText,
+    string TeacherText,
+    string CapacityText,
+    int CapacityPercent,
+    string SlotsBadge,
+    bool HasSchedule,
+    bool IsFull,
+    bool IsActive,
+    string StatusText,
+    StatusTone StatusTone,
+    StatusTone SlotsTone);
+
+/// <summary>One section of the card list (all groups, or one level/teacher).</summary>
+public sealed record GroupSection(string Title, IReadOnlyList<GroupCardItem> Items)
+{
+    public bool HasTitle => !string.IsNullOrWhiteSpace(Title);
+}
 
 /// <summary>
 /// Group list screen: instant search/sort, capacity and schedule badges, the
@@ -72,7 +114,10 @@ public sealed partial class GroupsViewModel : PageViewModel, IDisposable
         _license = license ?? throw new ArgumentNullException(nameof(license));
 
         Items = new ObservableCollection<GroupSummary>();
+        Cards = new ObservableCollection<GroupCardItem>();
+        Sections = new ObservableCollection<GroupSection>();
         SortOptions = new ObservableCollection<GroupSortOption>();
+        GroupingOptions = new ObservableCollection<GroupGroupingOption>();
         Grades = new ObservableCollection<GroupLookupOption>();
         Subjects = new ObservableCollection<GroupSubjectOption>();
         Teachers = new ObservableCollection<GroupLookupOption>();
@@ -83,7 +128,15 @@ public sealed partial class GroupsViewModel : PageViewModel, IDisposable
 
     public ObservableCollection<GroupSummary> Items { get; }
 
+    /// <summary>The same rows, projected for the card list.</summary>
+    public ObservableCollection<GroupCardItem> Cards { get; }
+
+    /// <summary>One section per level/teacher, or a single untitled section.</summary>
+    public ObservableCollection<GroupSection> Sections { get; }
+
     public ObservableCollection<GroupSortOption> SortOptions { get; }
+
+    public ObservableCollection<GroupGroupingOption> GroupingOptions { get; }
 
     public ObservableCollection<GroupLookupOption> Grades { get; }
 
@@ -156,6 +209,45 @@ public sealed partial class GroupsViewModel : PageViewModel, IDisposable
     [ObservableProperty]
     private bool _isSubjectsLoading;
 
+    [ObservableProperty]
+    private GroupViewMode _viewMode = GroupViewMode.Table;
+
+    [ObservableProperty]
+    private GroupGroupingOption? _selectedGrouping;
+
+    [ObservableProperty]
+    private string _nameError = string.Empty;
+
+    [ObservableProperty]
+    private string _gradeError = string.Empty;
+
+    [ObservableProperty]
+    private string _subjectError = string.Empty;
+
+    [ObservableProperty]
+    private string _capacityError = string.Empty;
+
+    [ObservableProperty]
+    private string _feeError = string.Empty;
+
+    public bool IsTableView => ViewMode == GroupViewMode.Table;
+
+    public bool IsCardView => ViewMode == GroupViewMode.Cards;
+
+    public bool HasCards => Cards.Count > 0;
+
+    public bool HasNoGrades => Grades.Count == 0;
+
+    public bool HasNameError => !string.IsNullOrEmpty(NameError);
+
+    public bool HasGradeError => !string.IsNullOrEmpty(GradeError);
+
+    public bool HasSubjectError => !string.IsNullOrEmpty(SubjectError);
+
+    public bool HasCapacityError => !string.IsNullOrEmpty(CapacityError);
+
+    public bool HasFeeError => !string.IsNullOrEmpty(FeeError);
+
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
     public bool HasStatus => !string.IsNullOrEmpty(StatusMessage);
@@ -192,6 +284,8 @@ public sealed partial class GroupsViewModel : PageViewModel, IDisposable
         if (result.IsFailure)
         {
             Items.Clear();
+            Cards.Clear();
+            Sections.Clear();
             State = new UiState<IReadOnlyList<GroupSummary>>.Error(result.Failure!);
             ShowFailure(result.Failure!);
             return;
@@ -202,6 +296,8 @@ public sealed partial class GroupsViewModel : PageViewModel, IDisposable
         {
             Items.Add(item);
         }
+
+        RebuildCards();
 
         State = result.Value.Count == 0
             ? new UiState<IReadOnlyList<GroupSummary>>.Empty()
@@ -220,6 +316,12 @@ public sealed partial class GroupsViewModel : PageViewModel, IDisposable
 
     [RelayCommand]
     private Task ReloadAsync() => RefreshAsync();
+
+    [RelayCommand]
+    private void ShowTable() => ViewMode = GroupViewMode.Table;
+
+    [RelayCommand]
+    private void ShowCards() => ViewMode = GroupViewMode.Cards;
 
     [RelayCommand]
     private async Task AddAsync()
@@ -361,6 +463,11 @@ public sealed partial class GroupsViewModel : PageViewModel, IDisposable
             return;
         }
 
+        if (!ValidateEditor())
+        {
+            return;
+        }
+
         IsBusy = true;
         try
         {
@@ -438,8 +545,152 @@ public sealed partial class GroupsViewModel : PageViewModel, IDisposable
 
     partial void OnStatusMessageChanged(string value) => OnPropertyChanged(nameof(HasStatus));
 
+    partial void OnViewModeChanged(GroupViewMode value)
+    {
+        OnPropertyChanged(nameof(IsTableView));
+        OnPropertyChanged(nameof(IsCardView));
+    }
+
+    partial void OnSelectedGroupingChanged(GroupGroupingOption? value) => RebuildSections();
+
+    partial void OnNameErrorChanged(string value) => OnPropertyChanged(nameof(HasNameError));
+
+    partial void OnGradeErrorChanged(string value) => OnPropertyChanged(nameof(HasGradeError));
+
+    partial void OnSubjectErrorChanged(string value) => OnPropertyChanged(nameof(HasSubjectError));
+
+    partial void OnCapacityErrorChanged(string value) => OnPropertyChanged(nameof(HasCapacityError));
+
+    partial void OnFeeErrorChanged(string value) => OnPropertyChanged(nameof(HasFeeError));
+
+    partial void OnEditorNameChanged(string value) => NameError = string.Empty;
+
+    partial void OnEditorMaxStudentsChanged(string value) => CapacityError = string.Empty;
+
+    partial void OnEditorMonthlyFeeChanged(string value) => FeeError = string.Empty;
+
+    partial void OnSelectedEditorSubjectChanged(GroupSubjectOption? value) => SubjectError = string.Empty;
+
     partial void OnSelectedEditorGradeChanged(GroupLookupOption? value)
-        => _ = LoadSubjectsForGradeAsync(value?.Id);
+    {
+        GradeError = string.Empty;
+        _ = LoadSubjectsForGradeAsync(value?.Id);
+    }
+
+    /// <summary>
+    /// Validates the form locally so an obvious mistake never reaches the use
+    /// case. The use case keeps its own rules; this only short-circuits the
+    /// round-trip and puts the message under the right field.
+    /// </summary>
+    public bool ValidateEditor()
+    {
+        NameError = string.IsNullOrWhiteSpace(EditorName)
+            ? _localization.Tr(TranslationKeys.Groups.NameRequired)
+            : string.Empty;
+
+        GradeError = SelectedEditorGrade is null or { Id: <= 0 }
+            ? _localization.Tr(TranslationKeys.Groups.GradeRequired)
+            : string.Empty;
+
+        SubjectError = SelectedEditorSubject is null or { Id: <= 0 }
+            ? _localization.Tr(TranslationKeys.Groups.SubjectRequired)
+            : string.Empty;
+
+        var capacityValid = int.TryParse(
+            EditorMaxStudents,
+            NumberStyles.Integer,
+            CultureInfo.InvariantCulture,
+            out var capacity);
+        CapacityError = !capacityValid || capacity < 1 || capacity > 500
+            ? _localization.Tr(TranslationKeys.Groups.CapacityInvalid)
+            : string.Empty;
+
+        var feeValid = double.TryParse(
+            EditorMonthlyFee,
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out var fee);
+        FeeError = !feeValid || fee < 0
+            ? _localization.Tr(TranslationKeys.Groups.FeeInvalid)
+            : string.Empty;
+
+        return !HasNameError && !HasGradeError && !HasSubjectError && !HasCapacityError && !HasFeeError;
+    }
+
+    private void RebuildCards()
+    {
+        Cards.Clear();
+        foreach (var item in Items)
+        {
+            Cards.Add(CreateCard(item));
+        }
+
+        RebuildSections();
+        OnPropertyChanged(nameof(HasCards));
+    }
+
+    private void RebuildSections()
+    {
+        Sections.Clear();
+
+        var grouping = SelectedGrouping?.Value ?? GroupGrouping.None;
+        if (grouping == GroupGrouping.None)
+        {
+            Sections.Add(new GroupSection(string.Empty, Cards.ToList()));
+            return;
+        }
+
+        var sections = Cards
+            .GroupBy(card => grouping == GroupGrouping.Level
+                ? card.Item.AcademicLevelName ?? _localization.Tr(TranslationKeys.Common.NotSpecified)
+                : card.Item.TeacherName ?? _localization.Tr(TranslationKeys.Groups.NoTeacherSection))
+            .OrderBy(group => group.Key, StringComparer.CurrentCultureIgnoreCase);
+
+        foreach (var group in sections)
+        {
+            Sections.Add(new GroupSection(group.Key, group.ToList()));
+        }
+    }
+
+    private GroupCardItem CreateCard(GroupSummary item)
+    {
+        var percent = item.MaxStudents <= 0
+            ? 0
+            : Math.Clamp((int)Math.Round(item.ActiveEnrollments * 100d / item.MaxStudents), 0, 100);
+
+        return new GroupCardItem(
+            item,
+            item.Name,
+            PlacementText(item),
+            item.SubjectName ?? _localization.Tr(TranslationKeys.Common.NotSpecified),
+            item.TeacherName ?? _localization.Tr(TranslationKeys.Groups.NoTeacher),
+            item.CapacityText,
+            percent,
+            item.HasSchedule
+                ? _localization.Tr(
+                    TranslationKeys.Groups.SlotsBadge,
+                    ("count", item.WeeklySlots.ToString(CultureInfo.InvariantCulture)))
+                : _localization.Tr(TranslationKeys.Groups.NoSlotsShort),
+            item.HasSchedule,
+            item.IsFull,
+            item.IsActive,
+            item.IsActive
+                ? _localization.Tr(TranslationKeys.Common.Active)
+                : _localization.Tr(TranslationKeys.Common.Inactive),
+            item.IsActive ? StatusTone.Success : StatusTone.Neutral,
+            item.HasSchedule ? StatusTone.Info : StatusTone.Neutral);
+    }
+
+    private string PlacementText(GroupSummary item)
+    {
+        var parts = new[] { item.AcademicLevelName, item.GradeName }
+            .Where(part => !string.IsNullOrWhiteSpace(part))
+            .ToArray();
+
+        return parts.Length == 0
+            ? _localization.Tr(TranslationKeys.Common.NotSpecified)
+            : string.Join(" • ", parts);
+    }
 
     private async Task RefreshIfLoadedAsync()
     {
@@ -482,6 +733,7 @@ public sealed partial class GroupsViewModel : PageViewModel, IDisposable
 
             SelectedEditorGrade = Grades.FirstOrDefault(option => option.Id == previousGrade);
             SelectedEditorTeacher = Teachers.FirstOrDefault(option => option.Id == previousTeacher);
+            OnPropertyChanged(nameof(HasNoGrades));
         }
         finally
         {
@@ -630,6 +882,11 @@ public sealed partial class GroupsViewModel : PageViewModel, IDisposable
         EditorMonthlyFee = "0";
         EditorIsActive = true;
         Subjects.Clear();
+        NameError = string.Empty;
+        GradeError = string.Empty;
+        SubjectError = string.Empty;
+        CapacityError = string.Empty;
+        FeeError = string.Empty;
     }
 
     private void ShowFailure(Failure failure)
@@ -675,6 +932,16 @@ public sealed partial class GroupsViewModel : PageViewModel, IDisposable
             SortOptions.Add(new GroupSortOption(GroupSortField.Fee, _localization.Tr(TranslationKeys.Groups.SortFee)));
             SelectedSort = SortOptions.First(option => option.Field == previousSort);
 
+            var previousGrouping = SelectedGrouping?.Value ?? GroupGrouping.None;
+            GroupingOptions.Clear();
+            GroupingOptions.Add(new GroupGroupingOption(
+                GroupGrouping.None, _localization.Tr(TranslationKeys.Groups.GroupByNone)));
+            GroupingOptions.Add(new GroupGroupingOption(
+                GroupGrouping.Level, _localization.Tr(TranslationKeys.Groups.GroupByLevel)));
+            GroupingOptions.Add(new GroupGroupingOption(
+                GroupGrouping.Teacher, _localization.Tr(TranslationKeys.Groups.GroupByTeacher)));
+            SelectedGrouping = GroupingOptions.First(option => option.Value == previousGrouping);
+
             if (Teachers.Count > 0)
             {
                 Teachers[0] = new GroupLookupOption(0, _localization.Tr(TranslationKeys.Groups.NoTeacher));
@@ -693,6 +960,11 @@ public sealed partial class GroupsViewModel : PageViewModel, IDisposable
         {
             EditorTitle = _localization.Tr(
                 EditingId is null ? TranslationKeys.Groups.Add : TranslationKeys.Groups.Edit);
+        }
+
+        if (Items.Count > 0)
+        {
+            RebuildCards();
         }
     }
 

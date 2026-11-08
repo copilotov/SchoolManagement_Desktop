@@ -1,265 +1,313 @@
 <UserControl x:Class="SchoolManagement.Desktop.Views.StudentDetailsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization">
-    <Grid>
-        <DockPanel Margin="24">
-            <StackPanel DockPanel.Dock="Top">
-                <Grid>
-                    <StackPanel Orientation="Horizontal">
-                        <Button Content="{loc:Tr common.back}"
-                                Command="{Binding BackCommand}"
-                                Style="{StaticResource LinkButton}"
-                                VerticalAlignment="Center"
-                                Margin="0,0,12,0" />
-                        <TextBlock Text="{loc:Tr students.details}"
-                                   Style="{StaticResource PageTitle}" />
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center">
-                        <Button Content="{loc:Tr students.edit}"
-                                Command="{Binding EditCommand}"
-                                Style="{StaticResource SecondaryButton}" />
-                        <Button Content="{loc:Tr students.printCard}"
-                                Command="{Binding PrintCardCommand}"
-                                Style="{StaticResource PrimaryButton}"
-                                Margin="10,0,0,0" />
-                    </StackPanel>
-                </Grid>
+             xmlns:controls="clr-namespace:SchoolManagement.Desktop.Controls"
+             xmlns:vm="clr-namespace:SchoolManagement.Desktop.ViewModels"
+             xmlns:loc="clr-namespace:SchoolManagement.Desktop.Localization"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:StudentDetailsViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="900"
+             d:DesignWidth="1280"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
 
-                <Border Background="{DynamicResource Brush.SurfaceVariant}"
-                        BorderBrush="{DynamicResource Brush.Danger}"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="12,8"
+    <!-- =====================================================================
+         Phase D5 - the student file.
+
+         The header answers the three questions a manager asks first: who, which
+         placement, and is the license still fine. The five tabs then split the
+         file into overview, groups, finance, attendance and homework. The
+         homework tab is an honest empty state because the homework report is a
+         later phase and the activity use case carries no homework rows.
+         ===================================================================== -->
+
+    <Grid>
+        <DockPanel Margin="{StaticResource Inset.Page}">
+
+            <StackPanel DockPanel.Dock="Top">
+                <Button Content="{loc:Tr common.back}"
+                        Command="{Binding BackCommand}"
+                        Style="{StaticResource Button.Link}"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,12" />
+
+                <Border Style="{StaticResource Component.Card}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <controls:Avatar Grid.Column="0"
+                                         DisplayName="{Binding FullName}"
+                                         Initials="{Binding Initials}"
+                                         ImageSource="{Binding PhotoImage}"
+                                         Tone="{Binding StatusTone}"
+                                         Size="64"
+                                         Margin="0,0,16,0"
+                                         VerticalAlignment="Center" />
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource Text.Title}"
+                                       TextTrimming="CharacterEllipsis"
+                                       Text="{Binding FullName}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <TextBlock Style="{StaticResource Text.Numeric}"
+                                           Foreground="{DynamicResource Text.Secondary}"
+                                           VerticalAlignment="Center"
+                                           Text="{Binding StudentCode}" />
+                                <controls:StatusBadge Text="{Binding StatusText}"
+                                                      Tone="{Binding StatusTone}"
+                                                      ShowDot="True"
+                                                      Margin="12,0,0,0" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource Text.Body}"
+                                       Foreground="{DynamicResource Text.Secondary}"
+                                       Margin="0,6,0,0"
+                                       TextTrimming="CharacterEllipsis"
+                                       Text="{Binding PlacementText}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="72"
+                                    Height="72"
+                                    Margin="0,0,12,0"
+                                    Background="White"
+                                    CornerRadius="{StaticResource Radius.Small}"
+                                    BorderBrush="{DynamicResource Border.Subtle}"
+                                    BorderThickness="1"
+                                    Padding="4"
+                                    Visibility="{Binding HasQrImage, Converter={StaticResource BoolToVisibility}}">
+                                <Image Source="{Binding QrImage}" Stretch="Uniform" />
+                            </Border>
+
+                            <Button Content="{loc:Tr students.printCard}"
+                                    Style="{StaticResource Button.Secondary}"
+                                    Command="{Binding PrintCardCommand}"
+                                    Margin="0,0,8,0" />
+                            <Button Content="{loc:Tr common.edit}"
+                                    Style="{StaticResource Button.Primary}"
+                                    Command="{Binding EditCommand}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource Banner.Danger}"
                         Margin="0,12,0,0"
                         Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
-                    <TextBlock Text="{Binding ErrorMessage}"
-                               Foreground="{DynamicResource Brush.Danger}"
-                               TextWrapping="Wrap" />
-                </Border>
-
-                <Border Style="{StaticResource Card}" Margin="0,14,0,0">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <StackPanel Grid.Row="0" Grid.ColumnSpan="3" Margin="0,0,0,10">
-                            <TextBlock Text="{Binding FullName}"
-                                       Style="{StaticResource SectionHeader}" />
-                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                <TextBlock Text="{loc:Tr students.studentCode}"
-                                           Style="{StaticResource PageSubtitle}" />
-                                <TextBlock Text=": "
-                                           Style="{StaticResource PageSubtitle}" />
-                                <TextBlock Text="{Binding Details.StudentCode}"
-                                           Style="{StaticResource PageSubtitle}"
-                                           FontWeight="SemiBold" />
-                            </StackPanel>
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,12,8">
-                            <TextBlock Text="{loc:Tr students.dateOfBirth}" Style="{StaticResource FieldLabel}" />
-                            <TextBlock Text="{Binding DateOfBirthText}" />
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,12,8">
-                            <TextBlock Text="{loc:Tr students.gender}" Style="{StaticResource FieldLabel}" />
-                            <TextBlock Text="{Binding GenderText}" />
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,12,8">
-                            <TextBlock Text="{loc:Tr students.status}" Style="{StaticResource FieldLabel}" />
-                            <TextBlock Text="{Binding StatusText}" />
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,12,8">
-                            <TextBlock Text="{loc:Tr students.phone}" Style="{StaticResource FieldLabel}" />
-                            <TextBlock Text="{Binding Details.Phone}" />
-                        </StackPanel>
-                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,12,8">
-                            <TextBlock Text="{loc:Tr students.registrationFee}" Style="{StaticResource FieldLabel}" />
-                            <TextBlock Text="{Binding RegistrationFeeText}" />
-                        </StackPanel>
-                        <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,0,12,8">
-                            <TextBlock Text="{loc:Tr attendance.absent}" Style="{StaticResource FieldLabel}" />
-                            <TextBlock Text="{Binding AbsenceText}" />
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3">
-                            <TextBlock Text="{loc:Tr students.address}" Style="{StaticResource FieldLabel}" />
-                            <TextBlock Text="{Binding Details.Address}" TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <Border Style="{StaticResource Card}" Margin="0,12,0,0">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
-                                   Text="{loc:Tr students.guardianSection}"
-                                   Style="{StaticResource SectionHeader}"
-                                   Margin="0,0,0,8" />
-                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,12,8">
-                            <TextBlock Text="{loc:Tr students.guardianName}" Style="{StaticResource FieldLabel}" />
-                            <TextBlock Text="{Binding Details.GuardianName}" />
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,12,8">
-                            <TextBlock Text="{loc:Tr students.guardianPhone}" Style="{StaticResource FieldLabel}" />
-                            <TextBlock Text="{Binding Details.GuardianPhone}" />
-                        </StackPanel>
-                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,12,8">
-                            <TextBlock Text="{loc:Tr students.guardianEmail}" Style="{StaticResource FieldLabel}" />
-                            <TextBlock Text="{Binding Details.GuardianEmail}" />
-                        </StackPanel>
-                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,12,8">
-                            <TextBlock Text="{loc:Tr students.guardianRelationship}" Style="{StaticResource FieldLabel}" />
-                            <TextBlock Text="{Binding Details.GuardianRelationship}" />
-                        </StackPanel>
-                    </Grid>
+                    <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
                 </Border>
             </StackPanel>
 
-            <TabControl Margin="0,14,0,0">
+            <TabControl Margin="0,16,0,0">
+
+                <!-- Overview -->
+                <TabItem Header="{loc:Tr students.overview}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Style="{StaticResource Component.Card}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource Component.SectionTitle}"
+                                               Text="{loc:Tr students.detailsData}" />
+                                    <Border Style="{StaticResource Divider}" Margin="0,10" />
+
+                                    <TextBlock Style="{StaticResource Component.Hint}" Text="{loc:Tr students.dateOfBirth}" />
+                                    <TextBlock Style="{StaticResource Text.Body}" Text="{Binding DateOfBirthText}" />
+
+                                    <TextBlock Style="{StaticResource Component.Hint}" Margin="0,10,0,0" Text="{loc:Tr students.gender}" />
+                                    <TextBlock Style="{StaticResource Text.Body}" Text="{Binding GenderText}" />
+
+                                    <TextBlock Style="{StaticResource Component.Hint}" Margin="0,10,0,0" Text="{loc:Tr students.phone}" />
+                                    <TextBlock Style="{StaticResource Text.Body}" Text="{Binding Details.Phone}" />
+
+                                    <TextBlock Style="{StaticResource Component.Hint}" Margin="0,10,0,0" Text="{loc:Tr students.address}" />
+                                    <TextBlock Style="{StaticResource Text.Body}" Text="{Binding Details.Address}" TextWrapping="Wrap" />
+
+                                    <TextBlock Style="{StaticResource Component.Hint}" Margin="0,10,0,0" Text="{loc:Tr students.registrationFee}" />
+                                    <TextBlock Style="{StaticResource Text.Numeric}" Text="{Binding RegistrationFeeText}" />
+
+                                    <TextBlock Style="{StaticResource Component.Hint}" Margin="0,10,0,0" Text="{loc:Tr students.notes}" />
+                                    <TextBlock Style="{StaticResource Text.Body}" Text="{Binding Details.Notes}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="2" Style="{StaticResource Component.Card}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource Component.SectionTitle}"
+                                               Text="{loc:Tr students.guardian}" />
+                                    <Border Style="{StaticResource Divider}" Margin="0,10" />
+
+                                    <TextBlock Style="{StaticResource Component.Hint}" Text="{loc:Tr students.guardianName}" />
+                                    <TextBlock Style="{StaticResource Text.Body}" Text="{Binding Details.GuardianName}" />
+
+                                    <TextBlock Style="{StaticResource Component.Hint}" Margin="0,10,0,0" Text="{loc:Tr students.guardianPhone}" />
+                                    <TextBlock Style="{StaticResource Text.Numeric}" Text="{Binding Details.GuardianPhone}" />
+
+                                    <TextBlock Style="{StaticResource Component.Hint}" Margin="0,10,0,0" Text="{loc:Tr students.guardianEmail}" />
+                                    <TextBlock Style="{StaticResource Text.Body}" Text="{Binding Details.GuardianEmail}" TextWrapping="Wrap" />
+
+                                    <TextBlock Style="{StaticResource Component.Hint}" Margin="0,10,0,0" Text="{loc:Tr students.guardianRelationship}" />
+                                    <TextBlock Style="{StaticResource Text.Body}" Text="{Binding Details.GuardianRelationship}" />
+
+                                    <Border Style="{StaticResource Divider}" Margin="0,12" />
+
+                                    <TextBlock Style="{StaticResource Component.Hint}" Text="{loc:Tr students.detailsAttendance}" />
+                                    <TextBlock Style="{StaticResource Text.Numeric}" Text="{Binding AbsenceText}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- Groups -->
                 <TabItem Header="{loc:Tr students.detailsGroups}">
-                    <Grid>
+                    <Grid Margin="0,12,0,0">
                         <DataGrid ItemsSource="{Binding Enrollments}"
-                                  IsReadOnly="True"
                                   AutoGenerateColumns="False"
-                                  CanUserSortColumns="False">
+                                  CanUserSortColumns="False"
+                                  IsReadOnly="True"
+                                  Visibility="{Binding HasEnrollments, Converter={StaticResource BoolToVisibility}}">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="{loc:Tr groups.name}"
                                                     Binding="{Binding GroupName}"
                                                     Width="*" />
                                 <DataGridTextColumn Header="{loc:Tr groups.enrollmentDate}"
-                                                    Binding="{Binding EnrollmentDate}"
-                                                    Width="160" />
-                                <DataGridTextColumn Header="{loc:Tr students.filterStatus}"
+                                                    Binding="{Binding EnrollmentDate, StringFormat={}{0:yyyy-MM-dd}}"
+                                                    Width="140" />
+                                <DataGridTextColumn Header="{loc:Tr students.status}"
                                                     Binding="{Binding Status}"
                                                     Width="120" />
+                                <DataGridTextColumn Header="{loc:Tr students.registrationFee}"
+                                                    Binding="{Binding RegistrationFee, StringFormat={}{0:0.##}}"
+                                                    Width="140" />
                             </DataGrid.Columns>
                         </DataGrid>
-                        <StackPanel HorizontalAlignment="Center"
-                                    VerticalAlignment="Center">
-                            <StackPanel.Style>
-                                <Style TargetType="StackPanel">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasEnrollments}" Value="False">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </StackPanel.Style>
-                            <TextBlock Text="{loc:Tr students.groupsTabEmpty}"
-                                       Style="{StaticResource PageSubtitle}"
-                                       HorizontalAlignment="Center" />
-                            <Button Content="{loc:Tr students.openGroups}"
-                                    Command="{Binding OpenGroupsCommand}"
-                                    Style="{StaticResource LinkButton}"
-                                    Margin="0,8,0,0" />
-                        </StackPanel>
+
+                        <controls:EmptyState Title="{loc:Tr students.noGroups}"
+                                             Description="{loc:Tr students.groupsTabEmpty}"
+                                             Glyph="{StaticResource Icon.Groups}"
+                                             ActionText="{loc:Tr students.openGroups}"
+                                             ActionCommand="{Binding OpenGroupsCommand}"
+                                             Visibility="{Binding HasEnrollments, Converter={StaticResource InverseBoolToVisibility}}" />
                     </Grid>
                 </TabItem>
 
+                <!-- Finance -->
                 <TabItem Header="{loc:Tr students.detailsFinance}">
-                    <Grid>
-                        <DataGrid ItemsSource="{Binding Payments}"
-                                  IsReadOnly="True"
+                    <Grid Margin="0,12,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                            <TextBlock Style="{StaticResource Component.StatLabel}"
+                                       VerticalAlignment="Center"
+                                       Text="{loc:Tr students.totalPaid}" />
+                            <TextBlock Style="{StaticResource Component.StatValue}"
+                                       Margin="8,0,0,0"
+                                       Text="{Binding TotalPaidText}" />
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding Payments}"
                                   AutoGenerateColumns="False"
-                                  CanUserSortColumns="False">
+                                  CanUserSortColumns="False"
+                                  IsReadOnly="True"
+                                  Visibility="{Binding HasPayments, Converter={StaticResource BoolToVisibility}}">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="{loc:Tr finance.paymentDate}"
-                                                    Binding="{Binding PaymentDate}"
-                                                    Width="160" />
-                                <DataGridTextColumn Header="{loc:Tr finance.amount}"
-                                                    Binding="{Binding Amount}"
-                                                    Width="120" />
-                                <DataGridTextColumn Header="{loc:Tr finance.paymentMethod}"
-                                                    Binding="{Binding Method}"
+                                <DataGridTextColumn Header="{loc:Tr students.selectDate}"
+                                                    Binding="{Binding PaymentDate, StringFormat={}{0:yyyy-MM-dd}}"
                                                     Width="140" />
-                                <DataGridTextColumn Header="{loc:Tr finance.receiptNumber}"
-                                                    Binding="{Binding ReceiptNumber}"
+                                <DataGridTextColumn Header="{loc:Tr students.financialStatus}"
+                                                    Binding="{Binding Type}"
+                                                    Width="120" />
+                                <DataGridTextColumn Header="{loc:Tr common.total}"
+                                                    Binding="{Binding Amount, StringFormat={}{0:0.##}}"
+                                                    Width="120" />
+                                <DataGridTextColumn Header="{loc:Tr students.registrationFee}"
+                                                    Binding="{Binding Method}"
                                                     Width="*" />
                             </DataGrid.Columns>
                         </DataGrid>
-                        <StackPanel HorizontalAlignment="Center"
-                                    VerticalAlignment="Center">
-                            <StackPanel.Style>
-                                <Style TargetType="StackPanel">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasPayments}" Value="False">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </StackPanel.Style>
-                            <TextBlock Text="{loc:Tr students.financeTabEmpty}"
-                                       Style="{StaticResource PageSubtitle}"
-                                       HorizontalAlignment="Center" />
-                            <Button Content="{loc:Tr students.openFinance}"
-                                    Command="{Binding OpenFinanceCommand}"
-                                    Style="{StaticResource LinkButton}"
-                                    Margin="0,8,0,0" />
-                        </StackPanel>
+
+                        <controls:EmptyState Grid.Row="1"
+                                             Title="{loc:Tr students.noPayments}"
+                                             Description="{loc:Tr students.financeTabEmpty}"
+                                             Glyph="{StaticResource Icon.Money}"
+                                             ActionText="{loc:Tr students.openFinance}"
+                                             ActionCommand="{Binding OpenFinanceCommand}"
+                                             Visibility="{Binding HasPayments, Converter={StaticResource InverseBoolToVisibility}}" />
                     </Grid>
                 </TabItem>
 
+                <!-- Attendance -->
                 <TabItem Header="{loc:Tr students.detailsAttendance}">
-                    <Grid>
-                        <DataGrid ItemsSource="{Binding Attendance}"
-                                  IsReadOnly="True"
+                    <Grid Margin="0,12,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                            <TextBlock Style="{StaticResource Component.StatLabel}"
+                                       VerticalAlignment="Center"
+                                       Text="{loc:Tr students.attendanceRate}" />
+                            <TextBlock Style="{StaticResource Component.StatValue}"
+                                       Margin="8,0,0,0"
+                                       Text="{Binding AttendanceRateText}" />
+                            <TextBlock Style="{StaticResource Component.StatLabel}"
+                                       Margin="24,0,0,0"
+                                       VerticalAlignment="Center"
+                                       Text="{loc:Tr students.detailsAttendance}" />
+                            <TextBlock Style="{StaticResource Text.Numeric}"
+                                       Margin="8,0,0,0"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding AbsenceText}" />
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding Attendance}"
                                   AutoGenerateColumns="False"
-                                  CanUserSortColumns="False">
+                                  CanUserSortColumns="False"
+                                  IsReadOnly="True"
+                                  Visibility="{Binding HasAttendance, Converter={StaticResource BoolToVisibility}}">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="{loc:Tr finance.operationDate}"
-                                                    Binding="{Binding CheckInTime}"
-                                                    Width="180" />
-                                <DataGridTextColumn Header="{loc:Tr students.filterStatus}"
+                                <DataGridTextColumn Header="{loc:Tr attendance.title}"
+                                                    Binding="{Binding SessionId}"
+                                                    Width="120" />
+                                <DataGridTextColumn Header="{loc:Tr students.status}"
                                                     Binding="{Binding Status}"
                                                     Width="140" />
-                                <DataGridTextColumn Header="{loc:Tr students.notes}"
-                                                    Binding="{Binding Notes}"
+                                <DataGridTextColumn Header="{loc:Tr common.time}"
+                                                    Binding="{Binding CheckInTime, StringFormat={}{0:HH:mm}}"
                                                     Width="*" />
                             </DataGrid.Columns>
                         </DataGrid>
-                        <StackPanel HorizontalAlignment="Center"
-                                    VerticalAlignment="Center">
-                            <StackPanel.Style>
-                                <Style TargetType="StackPanel">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasAttendance}" Value="False">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </StackPanel.Style>
-                            <!-- The attendance screen arrives in a later phase; until
-                                 then the tab is read-only and has no navigation link. -->
-                            <TextBlock Text="{loc:Tr students.attendanceTabEmpty}"
-                                       Style="{StaticResource PageSubtitle}"
-                                       HorizontalAlignment="Center" />
-                        </StackPanel>
+
+                        <controls:EmptyState Grid.Row="1"
+                                             Title="{loc:Tr students.noAttendance}"
+                                             Description="{loc:Tr students.attendanceTabEmpty}"
+                                             Glyph="{StaticResource Icon.Attendance}"
+                                             Visibility="{Binding HasAttendance, Converter={StaticResource InverseBoolToVisibility}}" />
                     </Grid>
+                </TabItem>
+
+                <!-- Homework -->
+                <TabItem Header="{loc:Tr students.homework}">
+                    <controls:EmptyState Title="{loc:Tr students.noHomework}"
+                                         Description="{loc:Tr students.homeworkTabEmpty}"
+                                         Glyph="{StaticResource Icon.Homework}"
+                                         Margin="0,24,0,0" />
                 </TabItem>
             </TabControl>
         </DockPanel>

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,6 +8,7 @@ using SchoolManagement.Application.Localization;
 using SchoolManagement.Application.Repositories.Models;
 using SchoolManagement.Application.Students;
 using SchoolManagement.Application.UseCases;
+using SchoolManagement.Desktop.Controls;
 using SchoolManagement.Desktop.Services;
 using SchoolManagement.Domain.Common;
 
@@ -23,6 +25,31 @@ public sealed record StudentGenderOption(string? Value, string Label);
 
 /// <summary>One rejected import row, already localized for the report.</summary>
 public sealed record StudentImportErrorItem(string Row, string Reference, string Message);
+
+/// <summary>Table or card presentation of the student list.</summary>
+public enum StudentViewMode
+{
+    Table,
+    Cards,
+}
+
+/// <summary>
+/// One removable filter chip. <see cref="Kind"/> is the filter identifier the
+/// <c>ClearFilterCommand</c> switches on; the label is already localized.
+/// </summary>
+public sealed record StudentFilterChip(string Kind, string Label);
+
+/// <summary>Display-only projection of a student row for the card list.</summary>
+public sealed record StudentCardItem(
+    StudentListItem Item,
+    string FullName,
+    string Initials,
+    string Placement,
+    string GuardianText,
+    string FeeText,
+    string StatusText,
+    StatusTone StatusTone);
+
 
 /// <summary>
 /// Student list screen. It owns the instant filters, the shared add/edit form,
@@ -47,11 +74,13 @@ public sealed partial class StudentsViewModel : PageViewModel, IDisposable
     private readonly IUserDialogService _dialogs;
     private readonly IFileDialogService _files;
     private readonly INavigationService _navigation;
+    private readonly ISmsLauncher _sms;
     private readonly LicenseViewModel _license;
 
     private bool _suppressReload;
     private bool _isLoaded;
     private bool _disposed;
+    private IReadOnlyList<StudentListItem> _allItems = Array.Empty<StudentListItem>();
 
     public StudentsViewModel(
         GetStudentsUseCase getStudents,
@@ -65,6 +94,7 @@ public sealed partial class StudentsViewModel : PageViewModel, IDisposable
         IUserDialogService dialogs,
         IFileDialogService files,
         INavigationService navigation,
+        ISmsLauncher sms,
         LicenseViewModel license)
     {
         _getStudents = getStudents ?? throw new ArgumentNullException(nameof(getStudents));
@@ -78,9 +108,12 @@ public sealed partial class StudentsViewModel : PageViewModel, IDisposable
         _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
         _files = files ?? throw new ArgumentNullException(nameof(files));
         _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
+        _sms = sms ?? throw new ArgumentNullException(nameof(sms));
         _license = license ?? throw new ArgumentNullException(nameof(license));
 
         Items = new ObservableCollection<StudentListItem>();
+        Cards = new ObservableCollection<StudentCardItem>();
+        ActiveFilters = new ObservableCollection<StudentFilterChip>();
         Levels = new ObservableCollection<StudentFilterOption>();
         Grades = new ObservableCollection<StudentFilterOption>();
         Groups = new ObservableCollection<StudentFilterOption>();
@@ -94,6 +127,13 @@ public sealed partial class StudentsViewModel : PageViewModel, IDisposable
     }
 
     public ObservableCollection<StudentListItem> Items { get; }
+
+    /// <summary>The same rows, projected for the card list.</summary>
+    public ObservableCollection<StudentCardItem> Cards { get; }
+
+    /// <summary>One chip per applied filter; each chip removes only its own filter.</summary>
+    public ObservableCollection<StudentFilterChip> ActiveFilters { get; }
+
 
     public ObservableCollection<StudentFilterOption> Levels { get; }
 
@@ -210,13 +250,59 @@ public sealed partial class StudentsViewModel : PageViewModel, IDisposable
     [ObservableProperty]
     private string _importReportSummary = string.Empty;
 
+    [ObservableProperty]
+    private StudentViewMode _viewMode = StudentViewMode.Table;
+
+    [ObservableProperty]
+    private bool _feePendingOnly;
+
+    [ObservableProperty]
+    private string _firstNameError = string.Empty;
+
+    [ObservableProperty]
+    private string _lastNameError = string.Empty;
+
+    [ObservableProperty]
+    private string _guardianError = string.Empty;
+
+    [ObservableProperty]
+    private string _feeError = string.Empty;
+
+    /// <summary>
+    /// Snapshot of the table selection, pushed by <c>DataTable</c> so the bulk
+    /// bar can enable its two actions without the table knowing a student.
+    /// </summary>
+    [ObservableProperty]
+    private IList? _selectedRows;
+
+    public bool HasBulkSelection => SelectedRows is { Count: > 0 };
+
+    public string SelectedCountText => _localization.Tr(
+        TranslationKeys.Common.Selected,
+        ("count", (SelectedRows?.Count ?? 0).ToString(CultureInfo.InvariantCulture)));
+
+    public bool IsTableView => ViewMode == StudentViewMode.Table;
+
+    public bool IsCardView => ViewMode == StudentViewMode.Cards;
+
+    public bool HasActiveFilters => ActiveFilters.Count > 0;
+
+    public bool HasFirstNameError => !string.IsNullOrEmpty(FirstNameError);
+
+    public bool HasLastNameError => !string.IsNullOrEmpty(LastNameError);
+
+    public bool HasGuardianError => !string.IsNullOrEmpty(GuardianError);
+
+    public bool HasFeeError => !string.IsNullOrEmpty(FeeError);
+
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
     public bool HasStatus => !string.IsNullOrEmpty(StatusMessage);
 
     public bool HasImportErrors => ImportErrors.Count > 0;
 
-    public bool IsEmpty => State is UiState<IReadOnlyList<StudentListItem>>.Empty;
+    public bool IsEmpty => State is UiState<IReadOnlyList<StudentListItem>>.Empty || Items.Count == 0;
+
 
     public bool IsLoading => State.IsLoading;
 
@@ -250,17 +336,27 @@ public sealed partial class StudentsViewModel : PageViewModel, IDisposable
 
         if (result.IsFailure)
         {
+            _allItems = Array.Empty<StudentListItem>();
             Items.Clear();
+            Cards.Clear();
             State = new UiState<IReadOnlyList<StudentListItem>>.Error(result.Failure!);
             ShowFailure(result.Failure!);
             return;
         }
 
+        _allItems = result.Value;
+        var visible = FeePendingOnly
+            ? result.Value.Where(item => item.RegistrationFee > 0).ToList()
+            : result.Value.ToList();
+
         Items.Clear();
-        foreach (var item in result.Value)
+        foreach (var item in visible)
         {
             Items.Add(item);
         }
+
+        RebuildCards();
+        RebuildActiveFilters();
 
         State = result.Value.Count == 0
             ? new UiState<IReadOnlyList<StudentListItem>>.Empty()
@@ -270,6 +366,7 @@ public sealed partial class StudentsViewModel : PageViewModel, IDisposable
         // behave the same way, and a save/import message must survive the refresh
         // that follows it. Explicit actions (Add, Edit, failures) clear it instead.
         OnPropertyChanged(nameof(IsEmpty));
+        OnPropertyChanged(nameof(HasActiveFilters));
     }
 
     /// <summary>Maps a <see cref="StudentDetails"/> row onto the shared form.</summary>
@@ -437,9 +534,156 @@ public sealed partial class StudentsViewModel : PageViewModel, IDisposable
     }
 
     [RelayCommand]
+    private void ShowTable() => ViewMode = StudentViewMode.Table;
+
+    [RelayCommand]
+    private void ShowCards() => ViewMode = StudentViewMode.Cards;
+
+    /// <summary>Removes a single chip; every other filter stays untouched.</summary>
+    [RelayCommand]
+    private void ClearFilter(string? kind)
+    {
+        switch (kind)
+        {
+            case "search":
+                SearchText = string.Empty;
+                break;
+            case "level":
+                SelectedLevel = Levels.FirstOrDefault();
+                break;
+            case "grade":
+                SelectedGrade = Grades.FirstOrDefault();
+                break;
+            case "group":
+                SelectedGroup = Groups.FirstOrDefault();
+                break;
+            case "status":
+                SelectedStatus = Statuses.FirstOrDefault();
+                break;
+            case "fee":
+                FeePendingOnly = false;
+                break;
+            default:
+                break;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ClearFiltersAsync()
+    {
+        _suppressReload = true;
+        try
+        {
+            SearchText = null;
+            SelectedLevel = Levels.FirstOrDefault();
+            SelectedGrade = Grades.FirstOrDefault();
+            SelectedGroup = Groups.FirstOrDefault();
+            SelectedStatus = Statuses.FirstOrDefault();
+            FeePendingOnly = false;
+        }
+        finally
+        {
+            _suppressReload = false;
+        }
+
+        await RefreshIfLoadedAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>Prints the QR sheet of the rows ticked in the table.</summary>
+    [RelayCommand]
+    private async Task PrintSelectedQrAsync()
+    {
+        var ids = SelectedStudentIds();
+        if (ids.Count == 0)
+        {
+            return;
+        }
+
+        var page = _navigation.NavigateTo<StudentsQrPrintViewModel>();
+        await page.InitializeAsync(ids).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Opens the messaging app for the guardians of the ticked rows. Nothing
+    /// leaves the machine: the body is localized locally and the numbers are
+    /// passed to the <c>sms:</c> launcher.
+    /// </summary>
+    [RelayCommand]
+    private async Task MessageGuardiansAsync()
+    {
+        var rows = SelectedStudents();
+        if (rows.Count == 0)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var phones = new List<string>();
+            var names = new List<string>();
+
+            foreach (var row in rows)
+            {
+                var details = await _getDetails.ExecuteAsync(row.Id).ConfigureAwait(false);
+                if (details.IsFailure)
+                {
+                    ShowFailure(details.Failure!);
+                    return;
+                }
+
+                var phone = details.Value?.GuardianPhone;
+                if (string.IsNullOrWhiteSpace(phone))
+                {
+                    phone = row.Phone;
+                }
+
+                if (!string.IsNullOrWhiteSpace(phone))
+                {
+                    phones.Add(phone);
+                    names.Add($"{row.FirstName} {row.LastName}".Trim());
+                }
+            }
+
+            if (phones.Count == 0)
+            {
+                ErrorMessage = _localization.Tr(TranslationKeys.Students.MessageNoPhone);
+                StatusMessage = string.Empty;
+                IsRenewVisible = false;
+                return;
+            }
+
+            var body = _localization.Tr(
+                TranslationKeys.Students.MessageBody,
+                ("name", names.Count == 1 ? names[0] : string.Join(", ", names)));
+
+            var opened = await _sms.OpenAsync(phones, body).ConfigureAwait(false);
+            if (opened)
+            {
+                ShowSuccess(TranslationKeys.Students.MessageOpened, ("count", phones.Count));
+            }
+            else
+            {
+                ErrorMessage = _localization.Tr(TranslationKeys.Students.MessageFailed);
+                StatusMessage = string.Empty;
+                IsRenewVisible = false;
+            }
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
     private async Task SaveEditorAsync()
     {
         if (!IsEditorOpen)
+        {
+            return;
+        }
+
+        if (!ValidateEditor())
         {
             return;
         }
@@ -512,9 +756,70 @@ public sealed partial class StudentsViewModel : PageViewModel, IDisposable
 
     partial void OnSortDescendingChanged(bool value) => _ = RefreshIfLoadedAsync();
 
+    partial void OnFeePendingOnlyChanged(bool value) => _ = RefreshIfLoadedAsync();
+
+    partial void OnViewModeChanged(StudentViewMode value)
+    {
+        OnPropertyChanged(nameof(IsTableView));
+        OnPropertyChanged(nameof(IsCardView));
+    }
+
+    partial void OnSelectedRowsChanged(IList? value)
+    {
+        OnPropertyChanged(nameof(HasBulkSelection));
+        OnPropertyChanged(nameof(SelectedCountText));
+    }
+
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
 
     partial void OnStatusMessageChanged(string value) => OnPropertyChanged(nameof(HasStatus));
+
+    partial void OnFirstNameErrorChanged(string value) => OnPropertyChanged(nameof(HasFirstNameError));
+
+    partial void OnLastNameErrorChanged(string value) => OnPropertyChanged(nameof(HasLastNameError));
+
+    partial void OnGuardianErrorChanged(string value) => OnPropertyChanged(nameof(HasGuardianError));
+
+    partial void OnFeeErrorChanged(string value) => OnPropertyChanged(nameof(HasFeeError));
+
+    partial void OnEditorFirstNameChanged(string value) => FirstNameError = string.Empty;
+
+    partial void OnEditorLastNameChanged(string value) => LastNameError = string.Empty;
+
+    partial void OnEditorGuardianNameChanged(string value) => GuardianError = string.Empty;
+
+    partial void OnEditorRegistrationFeeChanged(string value) => FeeError = string.Empty;
+
+    /// <summary>
+    /// Validates the form locally so an obvious mistake never reaches the use
+    /// case. The use case keeps its own rules; this only short-circuits the
+    /// round-trip and puts the message under the right field.
+    /// </summary>
+    public bool ValidateEditor()
+    {
+        FirstNameError = string.IsNullOrWhiteSpace(EditorFirstName)
+            ? _localization.Tr(TranslationKeys.Students.ValidationFirstName)
+            : string.Empty;
+
+        LastNameError = string.IsNullOrWhiteSpace(EditorLastName)
+            ? _localization.Tr(TranslationKeys.Students.ValidationLastName)
+            : string.Empty;
+
+        var hasGuardianContact = !string.IsNullOrWhiteSpace(EditorGuardianPhone)
+            || !string.IsNullOrWhiteSpace(EditorGuardianEmail);
+        GuardianError = hasGuardianContact && string.IsNullOrWhiteSpace(EditorGuardianName)
+            ? _localization.Tr(TranslationKeys.Students.ValidationGuardian)
+            : string.Empty;
+
+        var type = NumberStyles.Float;
+        var culture = CultureInfo.InvariantCulture;
+        FeeError = !string.IsNullOrWhiteSpace(EditorRegistrationFee)
+            && (!double.TryParse(EditorRegistrationFee, type, culture, out var fee) || fee < 0)
+                ? _localization.Tr(TranslationKeys.Students.ValidationFee)
+                : string.Empty;
+
+        return !HasFirstNameError && !HasLastNameError && !HasGuardianError && !HasFeeError;
+    }
 
     private async Task RefreshIfLoadedAsync()
     {
@@ -671,8 +976,91 @@ public sealed partial class StudentsViewModel : PageViewModel, IDisposable
         }
     }
 
-    private void ShowImportReport(StudentImportResult result)
+    private void RebuildCards()
     {
+        Cards.Clear();
+        foreach (var item in Items)
+        {
+            Cards.Add(new StudentCardItem(
+                item,
+                string.Join(" ", new[] { item.FirstName, item.LastName }.Where(part => !string.IsNullOrWhiteSpace(part))),
+                Initials(item.FirstName, item.LastName),
+                PlacementText(item),
+                item.GuardianName ?? _localization.Tr(TranslationKeys.Common.NotSpecified),
+                item.RegistrationFee.ToString("0.##", CultureInfo.InvariantCulture),
+                StatusLabel(item.Status),
+                StatusToneFor(item.Status)));
+        }
+    }
+
+    private string PlacementText(StudentListItem item)
+    {
+        var parts = new[] { item.LevelName, item.GradeName, item.GroupNames }
+            .Where(part => !string.IsNullOrWhiteSpace(part))
+            .ToArray();
+
+        return parts.Length == 0
+            ? _localization.Tr(TranslationKeys.Common.NotSpecified)
+            : string.Join(" • ", parts);
+    }
+
+    private static string Initials(string first, string last)
+    {
+        var chars = new List<char>(2);
+        foreach (var part in new[] { first, last })
+        {
+            if (!string.IsNullOrWhiteSpace(part))
+            {
+                chars.Add(char.ToUpperInvariant(part.Trim()[0]));
+            }
+        }
+
+        return new string(chars.ToArray());
+    }
+
+    private string StatusLabel(string status) => status switch
+    {
+        StudentStatuses.Active => _localization.Tr(TranslationKeys.Students.Active),
+        StudentStatuses.Inactive => _localization.Tr(TranslationKeys.Students.Inactive),
+        StudentStatuses.Withdrawn => _localization.Tr(TranslationKeys.Students.Withdrawn),
+        _ => status,
+    };
+
+    internal static StatusTone StatusToneFor(string status) => StatusBadgeMapper.MapTone(status);
+
+    /// <summary>
+    /// Rebuilds the chip strip from the live filter state. Called after every
+    /// load and after a language switch, so a chip never shows a stale label.
+    /// </summary>
+    private void RebuildActiveFilters()
+    {
+        ActiveFilters.Clear();
+
+        void Add(string kind, string? label)
+        {
+            if (!string.IsNullOrWhiteSpace(label))
+            {
+                ActiveFilters.Add(new StudentFilterChip(kind, label));
+            }
+        }
+
+        Add("search", SearchText);
+        Add("level", SelectedLevel?.Id is null ? null : SelectedLevel.Label);
+        Add("grade", SelectedGrade?.Id is null ? null : SelectedGrade.Label);
+        Add("group", SelectedGroup?.Id is null ? null : SelectedGroup.Label);
+        Add("status", SelectedStatus?.Id is null ? null : SelectedStatus.Label);
+        Add("fee", FeePendingOnly ? _localization.Tr(TranslationKeys.Students.FeePendingFilter) : null);
+
+        OnPropertyChanged(nameof(HasActiveFilters));
+    }
+
+    private List<StudentListItem> SelectedStudents()
+        => SelectedRows?.OfType<StudentListItem>().ToList() ?? new List<StudentListItem>();
+
+    private List<int> SelectedStudentIds()
+        => SelectedStudents().Select(item => item.Id).ToList();
+
+    private void ShowImportReport(StudentImportResult result)    {
         ImportErrors.Clear();
         foreach (var error in result.Errors)
         {
@@ -715,6 +1103,10 @@ public sealed partial class StudentsViewModel : PageViewModel, IDisposable
         EditorGuardianPhone = string.Empty;
         EditorGuardianEmail = string.Empty;
         EditorGuardianRelationship = string.Empty;
+        FirstNameError = string.Empty;
+        LastNameError = string.Empty;
+        GuardianError = string.Empty;
+        FeeError = string.Empty;
     }
 
     private void ShowFailure(Failure failure)
@@ -834,6 +1226,14 @@ public sealed partial class StudentsViewModel : PageViewModel, IDisposable
             EditorTitle = _localization.Tr(
                 EditingId is null ? TranslationKeys.Students.Add : TranslationKeys.Students.Edit);
         }
+
+        if (_allItems.Count > 0)
+        {
+            RebuildCards();
+        }
+
+        RebuildActiveFilters();
+        OnPropertyChanged(nameof(SelectedCountText));
     }
 
     public void Dispose()
